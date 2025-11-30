@@ -236,7 +236,7 @@ void* resize_thread(void* arg) {
     tui_t* tui = (tui_t*)arg;
     int last_lines = LINES;
     int last_cols = COLS;
-    add_output_msg(tui->output_terminal, "[RESIZE_THREAD] Booting up...", COLOR_INFO);
+    add_output_msg(tui->output_terminal, "[RESIZE_THREAD] Starting...", COLOR_INFO);
     while (is_program_running()) {
         if (LINES != last_lines || COLS != last_cols) {
             last_lines = LINES;
@@ -250,10 +250,13 @@ void* resize_thread(void* arg) {
     return NULL;
 }
 
+/* Update the Debug Display */
+/* @param tui Pointer to the main TUI struct */
 void update_debug_display(tui_t* tui) {
     if (!tui->debug_mode || !tui->debug || !tui->debug_terminal)
         return;
 
+    pthread_mutex_lock(&resize_mutex);
     werase(tui->debug_terminal);
     int line = 0;
     int debug_width = getmaxx(tui->debug_terminal);
@@ -293,10 +296,19 @@ void update_debug_display(tui_t* tui) {
     }
 
     wrefresh(tui->debug_terminal);
+    if (tui->input_terminal) {
+        wmove(tui->input_terminal, input_state.buff_cursor_y, input_state.buff_cursor_x);
+        wrefresh(tui->input_terminal);
+    }
+
+    pthread_mutex_unlock(&resize_mutex);
 }
 
+/* Debug Thread */
+/* @param arg Pointer which should point towards a tui_t struct */
 void* debug_thread(void* arg) {
     tui_t* tui = (tui_t*)arg;
+    add_output_msg(tui->output_terminal, "[DEBUG_THREAD] Starting...", COLOR_INFO);
     
     while (is_program_running() && tui->debug_mode) {
         update_debug_display(tui);

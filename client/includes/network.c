@@ -66,7 +66,7 @@ void send_command(const char* cmd, tui_t* tui) {
 void* recv_thread(void* arg) {
     (void)arg;
     char buff[BUFF_SIZE];
-    add_output_msg(global_tui_ref->output_terminal, "[RECV_THREAD] Booting up...", COLOR_INFO);
+    add_output_msg(global_tui_ref->output_terminal, "[RECV_THREAD] Starting...", COLOR_INFO);
 
     while (is_program_running()) {
         memset(buff, 0, BUFF_SIZE);
@@ -89,7 +89,7 @@ void* recv_thread(void* arg) {
             client_state.client_name[i] = '\0';
         } else if (strstr(buff, "RESP:Registered")) {
             client_state.loggedIn = true;
-            strcpy(client_state.client_name, buff + 27);
+            strcpy(client_state.client_name, buff + 26);
             int i = 0;
             while (client_state.client_name[i] != '!' && i < MAX_NAME_LEN)
                 i++;
