@@ -18,12 +18,12 @@ void init_history(comm_history_t* history) {
 /* @param new_command pointer to the command to be pushed*/
 void push_history(comm_history_t* history, const char* new_command) {
     if (strlen(new_command) == 0)
-        return; // empty new command
+        return;
 
     if (history->count > 0) {
         int last_index = (history->start_idx + history->count - 1) & 0x7F;
         if (strcmp(history->commands[last_index], new_command) == 0)
-            return; // previous command is the same one as the new command
+            return;
     }
 
     int new_index = (history->start_idx + history->count) & 0x7F;
@@ -48,7 +48,7 @@ const char *get_history(comm_history_t* history, int index) {
 
     if (history->count < HISTORY_SIZE)
         return history->commands[index];
-    else { // wrap-arround index
+    else {
         int phys_index = (history->start_idx + index) & 0x7F;
         return history->commands[phys_index];
     }

@@ -2,15 +2,20 @@
 #include <string.h>
 #include <unistd.h>
 
-void init_input(comm_history_t* history) {
-    init_history(history);
-    history->buff_len = 0;
-    history->buff_cursor_x = 2;
-    history->buff_cursor_y = 0;
-    memset(history->buff_cmd, 0, BUFF_SIZE);
-    memset(history->temp_command, 0, BUFF_SIZE);
+/* Initialize the Input and the History for the client */
+/* @param input_state The main input state struct */
+void init_input(comm_history_t* input_state) {
+    init_input_state(input_state);
+    input_state->buff_len = 0;
+    input_state->buff_cursor_x = 2;
+    input_state->buff_cursor_y = 0;
+    memset(input_state->buff_cmd, 0, BUFF_SIZE);
+    memset(input_state->temp_command, 0, BUFF_SIZE);
 }
 
+/* Search through the command history */
+/* @param input_window Pointer to the input window from the terminal */
+/* @param direction The character from the input that will guide the history navigation */
 void search_history(WINDOW* input_window, int direction) {
     if (input_state.count == 0)
         return;
@@ -50,9 +55,9 @@ void search_history(WINDOW* input_window, int direction) {
     }
 
     if (input_state.curr_idx >= 0 && input_state.curr_idx < input_state.count) {
-        const char* history_cmd = get_history(&input_state, input_state.curr_idx);
-        if (history_cmd) {
-            strncpy(input_state.buff_cmd, history_cmd, BUFF_SIZE - 1);
+        const char* input_state_cmd = get_input_state(&input_state, input_state.curr_idx);
+        if (input_state_cmd) {
+            strncpy(input_state.buff_cmd, input_state_cmd, BUFF_SIZE - 1);
             input_state.buff_cmd[BUFF_SIZE - 1] = '\0';
             input_state.buff_len = strlen(input_state.buff_cmd);
             
@@ -63,6 +68,8 @@ void search_history(WINDOW* input_window, int direction) {
     }
 }
 
+/* Get input from the Input window */
+/* @param input_window Window pointer from where we take the input */
 char* get_input(WINDOW* input_window) {
     static char input_buff[BUFF_SIZE];
     int ch;
@@ -143,7 +150,7 @@ char* get_input(WINDOW* input_window) {
     strncpy(input_buff, input_state.buff_cmd, BUFF_SIZE - 1);
     input_buff[BUFF_SIZE - 1] = '\0';
     if (input_state.buff_len > 0) {
-        push_history(&input_state, input_buff);
+        push_input_state(&input_state, input_buff);
     }
 
     return input_buff;

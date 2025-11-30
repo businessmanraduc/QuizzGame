@@ -7,6 +7,8 @@
 static output_state_t output_state = {0};
 comm_history_t input_state = {0};
 
+/* Initialize Terminal User Interface */
+/* @param tui Pointer to the main TUI struct */
 void init_tui(tui_t* tui) {
     initscr();
     timeout(50);
@@ -49,6 +51,8 @@ void init_tui(tui_t* tui) {
     wrefresh(tui->input);
 }
 
+/* Cleanup/Quit Terminal User Interface */
+/* @param tui Pointer to the main TUI struct */
 void cleanup_tui(tui_t *tui) {
     if (tui->output_terminal) delwin(tui->output_terminal);
     if (tui->output) delwin(tui->output);
@@ -57,6 +61,8 @@ void cleanup_tui(tui_t *tui) {
     endwin();
 }
 
+/* Clear screen buffer */
+/* @param window Pointer to the window to be cleared */
 void clear_screen(WINDOW* window) {
     pthread_mutex_lock(&resize_mutex);
     werase(window);
@@ -66,6 +72,10 @@ void clear_screen(WINDOW* window) {
     pthread_mutex_unlock(&resize_mutex);
 }
 
+/* Add output message to the screen */
+/* @param output_window Pointer to the output window */
+/* @param msg Message to be printed */
+/* @param color Color to be used for the message */
 void add_output_msg(WINDOW* output_window, const char* msg, output_color_t color) {
     pthread_mutex_lock(&resize_mutex);
 
@@ -88,6 +98,8 @@ void add_output_msg(WINDOW* output_window, const char* msg, output_color_t color
     pthread_mutex_unlock(&resize_mutex);
 }
 
+/* Redraw Input Window */
+/* @param input_window Pointer to the window which needs a redraw */
 void redraw_input(WINDOW* input_window) {
     werase(input_window);
     
@@ -137,6 +149,8 @@ void redraw_input(WINDOW* input_window) {
     wrefresh(input_window);
 }
 
+/* Redraw Output Window */
+/* @param output_window Pointer to the window which needs a redraw */
 void redraw_output(WINDOW* output_window) {
     werase(output_window);
     for (int i = 0; i < output_state.count; i++) {
@@ -150,6 +164,8 @@ void redraw_output(WINDOW* output_window) {
     wrefresh(output_window);
 }
 
+/* Main Handle Resize and re-Structuring function */
+/* @param tui Pointer to the main TUI struct */
 void handle_resize(tui_t* tui) {
     pthread_mutex_lock(&resize_mutex);
 
@@ -209,6 +225,8 @@ void handle_resize(tui_t* tui) {
     pthread_mutex_unlock(&resize_mutex);
 }
 
+/* Resize Thread */
+/* @param arg Pointer which should point towards a tui_t struct */
 void* resize_thread(void* arg) {
     tui_t* tui = (tui_t*)arg;
     int last_lines = LINES;
@@ -228,6 +246,9 @@ void* resize_thread(void* arg) {
 }
 
 void update_debug_display(tui_t*);
+
+/* Enable Debug-Mode */
+/* @param tui Pointer to the main TUI struct */
 void enable_debug(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Debug Mode activated.", COLOR_CLIENT);
     tui->debug_mode = true;
@@ -235,6 +256,9 @@ void enable_debug(tui_t* tui) {
     werase(stdscr);
     handle_resize(tui);
 }
+
+/* Disable Debug-Mode */
+/* @param tui Pointer to the main TUI struct */
 void disable_debug(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Debug Mode deactivated.", COLOR_CLIENT);
     tui->debug_mode = false;
@@ -243,6 +267,7 @@ void disable_debug(tui_t* tui) {
     handle_resize(tui);
 }
 
+/* Terminal Shutdown Animation - to be played whenever the client is shutting down */
 void terminal_shutdown_animation(void) {
     def_prog_mode();
     endwin();

@@ -15,12 +15,15 @@ client_state_t client_state = {0, false, {0}};
 bool server_online = true;
 pthread_mutex_t server_status_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/* Set the server status */
+/* @param status The new status value*/
 void set_server_status(bool status) {
     pthread_mutex_lock(&server_status_mutex);
     server_online = status;
     pthread_mutex_unlock(&server_status_mutex);
 }
 
+/* Get the server status */
 bool get_server_status() {
     pthread_mutex_lock(&server_status_mutex);
     bool status = server_online;
@@ -28,6 +31,9 @@ bool get_server_status() {
     return status;
 }
 
+/* Format the response received from the server and print it to the output terminal */
+/* @param resp Response from server */
+/* @param tui Terminal User Interface struct*/
 void format_resp(const char* resp, tui_t* tui) {
     int color;
     if (strstr(resp, "ERR_:"))
@@ -39,6 +45,9 @@ void format_resp(const char* resp, tui_t* tui) {
     add_output_msg(tui->output_terminal, resp + 5, color);
 }
 
+/* Send command to the server */
+/* @param cmd Command to be sent to the server */
+/* @param tui Terminal User Interface struct*/
 void send_command(const char* cmd, tui_t* tui) {
     if (!get_server_status()) {
         add_output_msg(tui->output_terminal, "[CLIENT] Error - Server is offline. Type 'reconnect' to attempt reconnection.", COLOR_ERROR);
@@ -53,6 +62,7 @@ void send_command(const char* cmd, tui_t* tui) {
     usleep(50000);
 }
 
+/* Receive Thread */
 void* recv_thread(void* arg) {
     (void)arg;
     char buff[BUFF_SIZE];
@@ -99,6 +109,8 @@ void* recv_thread(void* arg) {
     return NULL;
 }
 
+/* Connect to the server through socket() and by using TCP */
+/* @param tui Terminal User Interface struct*/
 bool connect_to_server(tui_t* tui) {
     global_tui_ref = tui;
     
@@ -127,6 +139,8 @@ bool connect_to_server(tui_t* tui) {
     return true;
 }
 
+/* Attempt reconnection to the server */
+/* @param tui Terminal User Interface struct*/
 bool attempt_reconnection(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Attempting to reconnect to server...\n", COLOR_CLIENT);
     if (client_state.socket_fd > 0) close(client_state.socket_fd);
