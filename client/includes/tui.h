@@ -18,6 +18,7 @@ typedef struct {
 typedef struct {
     WINDOW* output;
     WINDOW* output_terminal;
+    WINDOW* debug;
     WINDOW* debug_terminal;
     WINDOW* input;
     WINDOW* input_terminal;

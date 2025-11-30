@@ -19,9 +19,17 @@ typedef enum {
     COLOR_CLIENT = 7
 } output_color_t;
 
+typedef struct {
+    int socket_fd;
+    bool loggedIn;
+    char client_name[256];
+} client_state_t;
+
 extern volatile bool program_running;
 extern pthread_mutex_t resize_mutex;
 extern pthread_mutex_t input_mutex;
+
+extern client_state_t client_state;
 
 void set_program_running(bool);
 bool is_program_running();

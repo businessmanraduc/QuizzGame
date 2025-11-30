@@ -3,9 +3,9 @@
 #include <unistd.h>
 
 /* Initialize the Input and the History for the client */
-/* @param input_state The main input state struct */
+/* @param input_state The main input state struct*/
 void init_input(comm_history_t* input_state) {
-    init_input_state(input_state);
+    init_history(input_state);
     input_state->buff_len = 0;
     input_state->buff_cursor_x = 2;
     input_state->buff_cursor_y = 0;
@@ -55,9 +55,9 @@ void search_history(WINDOW* input_window, int direction) {
     }
 
     if (input_state.curr_idx >= 0 && input_state.curr_idx < input_state.count) {
-        const char* input_state_cmd = get_input_state(&input_state, input_state.curr_idx);
-        if (input_state_cmd) {
-            strncpy(input_state.buff_cmd, input_state_cmd, BUFF_SIZE - 1);
+        const char* history_cmd = get_history(&input_state, input_state.curr_idx);
+        if (history_cmd) {
+            strncpy(input_state.buff_cmd, history_cmd, BUFF_SIZE - 1);
             input_state.buff_cmd[BUFF_SIZE - 1] = '\0';
             input_state.buff_len = strlen(input_state.buff_cmd);
             
@@ -150,7 +150,7 @@ char* get_input(WINDOW* input_window) {
     strncpy(input_buff, input_state.buff_cmd, BUFF_SIZE - 1);
     input_buff[BUFF_SIZE - 1] = '\0';
     if (input_state.buff_len > 0) {
-        push_input_state(&input_state, input_buff);
+        push_history(&input_state, input_buff);
     }
 
     return input_buff;

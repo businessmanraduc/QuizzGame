@@ -1,4 +1,5 @@
 #include "tui.h"
+#include "network.h"
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -179,16 +180,20 @@ void handle_resize(tui_t* tui) {
 
     if (tui->debug_mode) {
         tui->total_width = COLS * 2 / 3;
+        werase(tui->debug);
         werase(tui->debug_terminal);
         for (int i = 0; i < total_height; i++)
             mvaddch(i, tui->total_width, 'm');
-        wresize(tui->debug_terminal, LINES, COLS / 3 - 1);
-        mvwin(tui->debug_terminal, 0, tui->total_width + 1);
-        box(tui->debug_terminal, 0, 0);
-        mvwprintw(tui->debug_terminal, 0, 2, " Debug ");
+        wresize(tui->debug, LINES, COLS / 3 - 1);
+        wresize(tui->debug_terminal, LINES - 2, COLS / 3 - 3);
+        mvwin(tui->debug, 0, tui->total_width + 1);
+        mvwin(tui->debug_terminal, 1, tui->total_width + 2);
+        box(tui->debug, 0, 0);
+        mvwprintw(tui->debug, 0, 2, " Debug ");
         for (int i = 0; i < total_height; i++)
             mvaddch(i, tui->total_width, ' ');
         refresh();
+        wrefresh(tui->debug);
         wrefresh(tui->debug_terminal);
     }
 
@@ -245,16 +250,76 @@ void* resize_thread(void* arg) {
     return NULL;
 }
 
-void update_debug_display(tui_t*);
+void update_debug_display(tui_t* tui) {
+    if (!tui->debug_mode || !tui->debug || !tui->debug_terminal)
+        return;
+
+    werase(tui->debug_terminal);
+    int line = 0;
+    int debug_width = getmaxx(tui->debug_terminal);
+
+    mvwprintw(tui->debug_terminal, line++, 1, "Server Status:");
+    mvwprintw(tui->debug_terminal, line++, 1, "-- Online: %s", get_server_status() ? "YES" : "NO");
+    mvwprintw(tui->debug_terminal, line++, 1, "-- Logged in: %s", client_state.loggedIn ? "YES" : "NO");
+    if (client_state.loggedIn) {
+        mvwprintw(tui->debug_terminal, line++, 1, "-- User: %s", client_state.client_name);
+    }
+    
+    line++;
+
+    mvwprintw(tui->debug_terminal, line++, 1, "Input State:");
+    mvwprintw(tui->debug_terminal, line++, 1, "-- Has input: %s", input_state.buff_len ? "YES" : "NO");
+    mvwprintw(tui->debug_terminal, line++, 1, "-- Cursor: (%d, %d)", input_state.buff_cursor_x, input_state.buff_cursor_y);
+    mvwprintw(tui->debug_terminal, line++, 1, "-- Buff len: %d", input_state.buff_len);
+    char buff_preview[21];
+    strncpy(buff_preview, input_state.buff_cmd, 20);
+    buff_preview[20] = '\0';
+    mvwprintw(tui->debug_terminal, line++, 1, "-- Buffer: '%s'", buff_preview);
+    
+    line++;
+    
+    mvwprintw(tui->debug_terminal, line++, 1, "Command History:");
+    comm_history_t* history = &input_state;
+    int show_count = (history->count < 8) ? history->count : 8;
+    for (int i = 0; i < show_count; i++) {
+        int hist_index = history->count - 1 - i;
+        const char* cmd = get_history(history, hist_index);
+        if (cmd) {
+            char cmd_preview[debug_width - 4];
+            strncpy(cmd_preview, cmd, debug_width - 5);
+            cmd_preview[debug_width - 5] = '\0';
+            mvwprintw(tui->debug_terminal, line++, 2, "%d: %s", i + 1, cmd_preview);
+        }
+    }
+
+    wrefresh(tui->debug_terminal);
+}
+
+void* debug_thread(void* arg) {
+    tui_t* tui = (tui_t*)arg;
+    
+    while (is_program_running() && tui->debug_mode) {
+        update_debug_display(tui);
+        usleep(100000);
+    }
+    
+    add_output_msg(tui->output_terminal, "[DEBUG_THREAD] Shutting down...", COLOR_INFO);
+    return NULL;
+}
 
 /* Enable Debug-Mode */
 /* @param tui Pointer to the main TUI struct */
 void enable_debug(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Debug Mode activated.", COLOR_CLIENT);
     tui->debug_mode = true;
-    tui->debug_terminal = newwin(LINES, COLS / 3, COLS * 2 / 3, 0);
+    tui->debug = newwin(LINES, COLS / 3, COLS * 2 / 3, 0);
+    tui->debug_terminal = newwin(LINES - 2, COLS / 3 - 2, COLS * 2 / 3 + 1, 1);
     werase(stdscr);
     handle_resize(tui);
+
+    pthread_t debug_thread_id;
+    pthread_create(&debug_thread_id, NULL, debug_thread, tui);
+    pthread_detach(debug_thread_id);
 }
 
 /* Disable Debug-Mode */
@@ -262,8 +327,11 @@ void enable_debug(tui_t* tui) {
 void disable_debug(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Debug Mode deactivated.", COLOR_CLIENT);
     tui->debug_mode = false;
+    usleep(200000);
     wclear(tui->debug_terminal);
+    wclear(tui->debug);
     delwin(tui->debug_terminal);
+    delwin(tui->debug);
     handle_resize(tui);
 }
 

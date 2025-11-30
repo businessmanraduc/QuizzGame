@@ -4,14 +4,6 @@
 #include <stdbool.h>
 #include "tui.h"
 
-typedef struct {
-    int socket_fd;
-    bool loggedIn;
-    char client_name[256];
-} client_state_t;
-
-extern client_state_t client_state;
-
 void set_server_status(bool);
 bool get_server_status();
 void format_resp(const char*, tui_t*);
