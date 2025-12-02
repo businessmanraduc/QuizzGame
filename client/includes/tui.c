@@ -262,22 +262,22 @@ void update_debug_display(tui_t* tui) {
     int debug_width = getmaxx(tui->debug_terminal);
 
     mvwprintw(tui->debug_terminal, line++, 1, "Server Status:");
-    mvwprintw(tui->debug_terminal, line++, 1, "-- Online: %s", get_server_status() ? "YES" : "NO");
-    mvwprintw(tui->debug_terminal, line++, 1, "-- Logged in: %s", client_state.loggedIn ? "YES" : "NO");
+    mvwprintw(tui->debug_terminal, line++, 1, " - Online: %s", get_server_status() ? "YES" : "NO");
+    mvwprintw(tui->debug_terminal, line++, 1, " - Logged in: %s", client_state.loggedIn ? "YES" : "NO");
     if (client_state.loggedIn) {
-        mvwprintw(tui->debug_terminal, line++, 1, "-- User: %s", client_state.client_name);
+        mvwprintw(tui->debug_terminal, line++, 1, " - User: %s", client_state.client_name);
     }
     
     line++;
 
     mvwprintw(tui->debug_terminal, line++, 1, "Input State:");
-    mvwprintw(tui->debug_terminal, line++, 1, "-- Has input: %s", input_state.buff_len ? "YES" : "NO");
-    mvwprintw(tui->debug_terminal, line++, 1, "-- Cursor: (%d, %d)", input_state.buff_cursor_x, input_state.buff_cursor_y);
-    mvwprintw(tui->debug_terminal, line++, 1, "-- Buff len: %d", input_state.buff_len);
-    char buff_preview[21];
-    strncpy(buff_preview, input_state.buff_cmd, 20);
-    buff_preview[20] = '\0';
-    mvwprintw(tui->debug_terminal, line++, 1, "-- Buffer: '%s'", buff_preview);
+    mvwprintw(tui->debug_terminal, line++, 1, " - Has input: %s", input_state.buff_len ? "YES" : "NO");
+    mvwprintw(tui->debug_terminal, line++, 1, " - Cursor: (%d, %d)", input_state.buff_cursor_x, input_state.buff_cursor_y);
+    mvwprintw(tui->debug_terminal, line++, 1, " - Buff len: %d", input_state.buff_len);
+    char buff_preview[65];
+    strncpy(buff_preview, input_state.buff_cmd, 64);
+    buff_preview[64] = '\0';
+    //mvwprintw(tui->debug_terminal, line++, 1, " - Buffer:[\n%s\n]", buff_preview);
     
     line++;
     
