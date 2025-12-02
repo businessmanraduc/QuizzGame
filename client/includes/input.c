@@ -70,7 +70,7 @@ void search_history(WINDOW* input_window, int direction) {
 
 /* Get input from the Input window */
 /* @param input_window Window pointer from where we take the input */
-char* get_input(WINDOW* input_window) {
+char* get_input(WINDOW* input_window, tui_t* tui) {
     static char input_buff[BUFF_SIZE];
     int ch;
 
@@ -91,8 +91,16 @@ char* get_input(WINDOW* input_window) {
     redraw_input(input_window);
     pthread_mutex_unlock(&resize_mutex);
 
+    int last_lines = LINES, last_cols = COLS;
+
     while ((ch = wgetch(input_window)) != '\n' && ch != KEY_ENTER && is_program_running()) {
-        if (ch == ERR) continue;
+        if (ch == ERR) {
+            if (LINES != last_lines || COLS != last_cols) {
+                last_lines = LINES;
+                last_cols = COLS;
+                handle_resize(tui);
+            }
+        }
         
         getmaxyx(input_window, actual_height, actual_width);
 

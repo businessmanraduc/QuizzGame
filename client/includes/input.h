@@ -7,5 +7,5 @@
 #include "tui.h"
 
 void init_input(comm_history_t*);
-char* get_input(WINDOW*);
+char* get_input(WINDOW*, tui_t*);
 #endif

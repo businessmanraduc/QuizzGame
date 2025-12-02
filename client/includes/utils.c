@@ -2,6 +2,7 @@
 #include <signal.h>
 
 volatile bool program_running = true;
+pthread_mutex_t resize_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ncurses_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 

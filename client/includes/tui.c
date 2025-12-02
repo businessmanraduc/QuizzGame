@@ -165,44 +165,6 @@ void redraw_output(WINDOW* output_window) {
     wrefresh(output_window);
 }
 
-void handle_resize_test(tui_t* tui) {
-    NCURSES_LOCK();
-    int old_curr_y, old_curr_x;
-    getyx(tui->input_terminal, old_curr_y, old_curr_x);
-
-    endwin();
-    refresh();
-
-    LINES = tigetnum("lines");
-    COLS = tigetnum("cols");
-    if (LINES < 0 || COLS < 0) {
-        LINES = 24;
-        COLS = 80;
-    }
-
-    int total_height = LINES;
-    tui->total_width = COLS;
-
-    if (total_height < 10 || tui->total_width < 20) {
-        total_height = 24;
-        tui->total_width = 80;
-    }
-
-    tui->output_height = total_height * 2 / 3;
-    tui->input_height = total_height - tui->output_height;
-
-    if (tui->output_height < 4) tui->output_height = 4;
-    if (tui->input_height < 4) tui->input_height = 4;
-
-    if (tui->output)
-        wresize(tui->output, tui->output_height, tui->total_width);
-
-    if (tui->input) {
-        wresize(tui->input, tui->input_height, tui->total_width);
-        
-    }
-}
-
 /* Main Handle Resize and re-Structuring function */
 /* @param tui Pointer to the main TUI struct */
 void handle_resize(tui_t* tui) {
