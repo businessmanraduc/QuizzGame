@@ -26,6 +26,7 @@ typedef struct {
 } client_state_t;
 
 extern volatile bool program_running;
+extern pthread_mutex_t resize_mutex;
 extern pthread_mutex_t ncurses_mutex;
 #define NCURSES_LOCK()   pthread_mutex_lock(&ncurses_mutex)
 #define NCURSES_UNLOCK() pthread_mutex_unlock(&ncurses_mutex)
