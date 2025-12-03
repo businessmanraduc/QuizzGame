@@ -6,7 +6,6 @@
 #include "utils.h"
 #include "tui.h"
 
-void init_input(comm_buff_t*);
-char* get_input(WINDOW*);
-
+void init_input(comm_history_t*);
+char* get_input(WINDOW*, tui_t*);
 #endif

@@ -1,17 +1,40 @@
 #include "network.h"
+#include "utils.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
-static tui_t* global_tui = NULL;
+static tui_t* global_tui_ref = NULL;
+client_state_t client_state = {0, false, {0}};
+bool server_online = true;
+pthread_mutex_t server_status_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/* Set the server status */
+/* @param status The new status value*/
+void set_server_status(bool status) {
+    pthread_mutex_lock(&server_status_mutex);
+    server_online = status;
+    pthread_mutex_unlock(&server_status_mutex);
+}
+
+/* Get the server status */
+bool get_server_status() {
+    pthread_mutex_lock(&server_status_mutex);
+    bool status = server_online;
+    pthread_mutex_unlock(&server_status_mutex);
+    return status;
+}
 
 /* Format the response received from the server and print it to the output terminal */
-/* @param tui Terminal User Interface struct*/
 /* @param resp Response from server */
-void print_resp(tui_t* tui, const char* resp) {
+/* @param tui Terminal User Interface struct*/
+void format_resp(const char* resp, tui_t* tui) {
     int color;
     if (strstr(resp, "ERR_:"))
         color = COLOR_ERROR;
@@ -19,14 +42,13 @@ void print_resp(tui_t* tui, const char* resp) {
         color = COLOR_WARNING;
     else
         color = COLOR_SERVER;
-    
     add_output_msg(tui->output_terminal, resp + 5, color);
 }
 
 /* Send command to the server */
-/* @param tui Terminal User Interface struct*/
 /* @param cmd Command to be sent to the server */
-void send_command(tui_t* tui, const char* cmd) {
+/* @param tui Terminal User Interface struct*/
+void send_command(const char* cmd, tui_t* tui) {
     if (!get_server_status()) {
         add_output_msg(tui->output_terminal, "[CLIENT] Error - Server is offline. Type 'reconnect' to attempt reconnection.", COLOR_ERROR);
         return;
@@ -35,6 +57,7 @@ void send_command(tui_t* tui, const char* cmd) {
         set_server_status(false);
         add_output_msg(tui->output_terminal, "[CLIENT] Error - Command sending failed!", COLOR_ERROR);
         add_output_msg(tui->output_terminal, "[CLIENT] Server connection lost. Type 'reconnect' to attempt reconnection.", COLOR_WARNING);
+        return;
     }
     usleep(50000);
 }
@@ -43,15 +66,15 @@ void send_command(tui_t* tui, const char* cmd) {
 void* recv_thread(void* arg) {
     (void)arg;
     char buff[BUFF_SIZE];
-    add_output_msg(global_tui->output_terminal, "[RECV_THREAD] Starting...", COLOR_INFO);
+    add_output_msg(global_tui_ref->output_terminal, "[RECV_THREAD] Starting...", COLOR_INFO);
 
     while (is_program_running()) {
         memset(buff, 0, BUFF_SIZE);
         int len = recv(client_state.socket_fd, buff, BUFF_SIZE - 1, 0);
         if (len <= 0) {
-            if (global_tui) {
-                add_output_msg(global_tui->output_terminal, "[CLIENT] Warning - Disconnected from server/Server offline.\n", COLOR_WARNING);
-                add_output_msg(global_tui->output_terminal, "[CLIENT] Type 'reconnect' to attempt reconnnection.", COLOR_WARNING);
+            if (global_tui_ref) {
+                add_output_msg(global_tui_ref->output_terminal, "[CLIENT] Warning - Disconnected from server/Server offline.\n", COLOR_WARNING);
+                add_output_msg(global_tui_ref->output_terminal, "[CLIENT] Type 'reconnect' to attempt reconnnection.", COLOR_WARNING);
             }
             set_server_status(false);
             break;
@@ -77,19 +100,19 @@ void* recv_thread(void* arg) {
             break;
         }
 
-        if (global_tui) {
-            format_resp(buff, global_tui);
+        if (global_tui_ref) {
+            format_resp(buff, global_tui_ref);
         }
     }
     
-    add_output_msg(global_tui->output_terminal, "[RECV_THREAD] Shutting down...", COLOR_INFO);
+    add_output_msg(global_tui_ref->output_terminal, "[RECV_THREAD] Shutting down...", COLOR_INFO);
     return NULL;
 }
 
 /* Connect to the server through socket() and by using TCP */
 /* @param tui Terminal User Interface struct*/
 bool connect_to_server(tui_t* tui) {
-    global_tui = tui;
+    global_tui_ref = tui;
     
     client_state.socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (client_state.socket_fd < 0) {

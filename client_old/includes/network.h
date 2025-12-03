@@ -2,10 +2,12 @@
 #define NETWORK_H
 
 #include <stdbool.h>
-#include "utils.h"
+#include "tui.h"
 
-void print_resp(tui_t*, const char*);
-void send_command(tui_t*, const char*);
+void set_server_status(bool);
+bool get_server_status();
+void format_resp(const char*, tui_t*);
+void send_command(const char*, tui_t*);
 void* recv_thread(void*);
 bool connect_to_server(tui_t*);
 bool attempt_reconnection(tui_t*);

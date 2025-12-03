@@ -7,10 +7,11 @@
 #include <ncurses.h>
 
 #include "includes/utils.h"
-#include "includes/history.h"
 #include "includes/tui.h"
 #include "includes/network.h"
 #include "includes/input.h"
+
+static tui_t tui;
 
 void display_welcome(tui_t* tui) {
     add_output_msg(tui->output_terminal, "Client Version 0.1", COLOR_CLIENT);
@@ -33,11 +34,11 @@ void process_user_command(const char* input, tui_t* tui) {
 
     if (strlen(command) > 0) {
         if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
-            send_command(tui, "quit");
+            send_command("quit", tui);
             add_output_msg(tui->output_terminal, "[CLIENT] Shutting down...", COLOR_MAGENTA);
             set_program_running(false);
             sleep(1);
-            shutdown_animation();
+            terminal_shutdown_animation();
         } else if (strcmp(command, "reconnect") == 0) {
             if (get_server_status())
                 add_output_msg(tui->output_terminal, "[CLIENT] Warning - Already connected!\n", COLOR_WARNING);
@@ -50,59 +51,45 @@ void process_user_command(const char* input, tui_t* tui) {
         } else if (strcmp(command, "debug-mode off") == 0) {
             disable_debug(tui);
         } else {
-            send_command(tui, command);
+            send_command(command, tui);
         }
     }
 }
 
 void main_thread(tui_t* tui) {
-    add_output_msg(tui->output_terminal, "[MAIN_THREAD] Starting...", COLOR_CLIENT);
-
     char* input;
-    input_state.curr_idx = -1;
-    input_state.temp_command[0] = '\0';
-    init_input(&command_buff);
-    redraw_input(tui->input_terminal);
-
     while (is_program_running()) {
-        input = get_input(tui->input_terminal);
-
-        if (input != NULL && strlen(input) != 0) {
-            input_state.curr_idx = -1;
-            input_state.temp_command[0] = '\0';
-            init_input(&command_buff);
-            process_user_command(input, tui);
-            redraw_input(tui->input_terminal);
+        input = get_input(tui->input_terminal, tui);
+        if (strlen(input) == 0) {
+            continue;
         }
-        if (is_resize_needed())
-            resize_client(tui);
-        if (tui->debug_mode)
-            redraw_debug(tui->debug_terminal, tui->input_terminal);
-    }
+        
+        process_user_command(input, tui);
 
-    add_output_msg(tui->output_terminal, "[MAIN_THREAD] Shutting down...", COLOR_CLIENT);
+        usleep(10000);
+    }
 }
 
 int main() {
-    tui_t client_tui;
     signal(SIGINT, handle_sigint);
-    signal(SIGWINCH, handle_sigwinch);
-    init_tui(&client_tui);
-    init_history(&input_state);
-    init_input(&command_buff);
+    init_tui(&tui);
 
-    if (!connect_to_server(&client_tui)) {
-        add_output_msg(client_tui.output_terminal, "[CLIENT] Error - Failed to connect to server automatically.", COLOR_ERROR);
-        add_output_msg(client_tui.output_terminal, "[CLIENT] Type 'reconnect' to attempt manual reconnection to server.", COLOR_WARNING);
+    //pthread_t resize_thread_id;
+    //pthread_create(&resize_thread_id, NULL, resize_thread, &tui);
+    //pthread_detach(resize_thread_id);
+
+    if (!connect_to_server(&tui)) {
+        add_output_msg(tui.output_terminal, "[CLIENT] Error - Failed to connect to server automatically.", COLOR_ERROR);
+        add_output_msg(tui.output_terminal, "[CLIENT] Type 'reconnect' to attempt manual reconnection to server.", COLOR_WARNING);
     } else {
         pthread_t recv_thread_id;
         pthread_create(&recv_thread_id, NULL, recv_thread, NULL);
         pthread_detach(recv_thread_id);
     }
 
-    display_welcome(&client_tui);
-    main_thread(&client_tui);
+    display_welcome(&tui);
+    main_thread(&tui);
 
-    cleanup_tui(&client_tui);
-    return 0;
+    cleanup_tui(&tui);
+    return 0; 
 }
