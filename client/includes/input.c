@@ -1,7 +1,10 @@
 #include "input.h"
+#include "network.h"
 #include <string.h>
 #include <unistd.h>
 
+/* Initialize the Input and the History for the client */
+/* @param command_buffer The main buffer for non-completed commands */
 void init_input(comm_buff_t* command_buffer) {
     command_buffer->len = 0;
     command_buffer->cursor_x = 2;
@@ -9,6 +12,8 @@ void init_input(comm_buff_t* command_buffer) {
     memset(command_buffer->command, 0, BUFF_SIZE);
 }
 
+/* Get input from the Input window */
+/* @param input_window Window pointer from where we take the input */
 char* get_input(WINDOW* input_window) {
     static char input_buff[BUFF_SIZE];
     
@@ -84,4 +89,42 @@ char* get_input(WINDOW* input_window) {
 
     // if we reach this point, then the input buffer doesn't have a complete command yet
     return NULL;
+}
+
+/* Process, Trim & Parse user command */
+/* @param input Pointer to the command to be sent to the server */
+/* @param tui Pointer to the main TUI struct */
+void process_user_command(const char* input, tui_t* tui) {
+    char output_line[1024];
+    snprintf(output_line, sizeof(output_line), "> %s", input);
+    add_output_msg(tui->output_terminal, output_line, COLOR_CLIENT);
+    
+    char* command = (char*)input;
+    while (*command == ' ' || *command == '\t') command++;
+    char* end = command + strlen(command) - 1;
+    while (end > command && (*end == ' ' || *end == '\t' || *end == '\n')) end--;
+    *(end + 1) = '\0';
+
+    if (strlen(command) > 0) {
+        if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
+            send_command(tui, "quit");
+            add_output_msg(tui->output_terminal, "[CLIENT] Shutting down...", COLOR_MAGENTA);
+            set_program_running(false);
+            sleep(1);
+            shutdown_animation();
+        } else if (strcmp(command, "reconnect") == 0) {
+            if (get_server_status())
+                add_output_msg(tui->output_terminal, "[CLIENT] Warning - Already connected!\n", COLOR_WARNING);
+            else 
+                attempt_reconnection(tui);
+        } else if (strcmp(command, "clear") == 0 || strcmp(command, "clr") == 0) {
+            clear_screen(tui->output_terminal);
+        } else if (strcmp(command, "debug-mode on") == 0) {
+            enable_debug(tui);
+        } else if (strcmp(command, "debug-mode off") == 0) {
+            disable_debug(tui);
+        } else {
+            send_command(tui, command);
+        }
+    }
 }

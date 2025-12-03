@@ -55,6 +55,8 @@ void init_tui(tui_t* tui) {
     wrefresh(tui->input);
 }
 
+/* Cleanup/Quit Terminal User Interface */
+/* @param tui Pointer to the main TUI struct */
 void cleanup_tui(tui_t* tui) {
     if (tui->output_terminal) delwin(tui->output_terminal);
     if (tui->output) delwin(tui->output);
@@ -65,6 +67,8 @@ void cleanup_tui(tui_t* tui) {
     endwin();
 }
 
+/* Clear screen buffer */
+/* @param window Pointer to the window to be cleared */
 void clear_screen(WINDOW* window) {
     NCURSES_LOCK();
     werase(window);
@@ -74,6 +78,8 @@ void clear_screen(WINDOW* window) {
     NCURSES_UNLOCK();
 }
 
+/* Redraw Input Window */
+/* @param input_window Pointer to the window which needs a redraw */
 void redraw_input(WINDOW* input_window) {
     NCURSES_LOCK();
     werase(input_window);
@@ -114,6 +120,8 @@ void redraw_input(WINDOW* input_window) {
     NCURSES_UNLOCK();
 }
 
+/* Redraw Output Window */
+/* @param output_window Pointer to the window which needs a redraw */
 void redraw_output(WINDOW* output_window) {
     NCURSES_LOCK();
 
@@ -130,6 +138,9 @@ void redraw_output(WINDOW* output_window) {
     NCURSES_UNLOCK();
 }
 
+/* Redraw Debug Window */
+/* @param debug_window Pointer to the window which needs a redraw */
+/* @param input_window Pointer to the input window, where we redirect the cursor when done */
 void redraw_debug(WINDOW* debug_window, WINDOW* input_window) {
     NCURSES_LOCK();
 
@@ -178,6 +189,8 @@ void redraw_debug(WINDOW* debug_window, WINDOW* input_window) {
     NCURSES_UNLOCK();
 }
 
+/* Main Resize Handler and re-Structuring function */
+/* @param tui Pointer to the main TUI struct */
 void resize_client(tui_t* tui) {
     NCURSES_LOCK();
 
@@ -246,6 +259,8 @@ void resize_client(tui_t* tui) {
     set_resize_req(false);
 }
 
+/* Enable Debug-Mode */
+/* @param tui Pointer to the main TUI struct */
 void enable_debug(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Debug Mode activated.", COLOR_CLIENT);
 
@@ -259,6 +274,8 @@ void enable_debug(tui_t* tui) {
     resize_client(tui);
 }
 
+/* Disable Debug-Mode */
+/* @param tui Pointer to the main TUI struct */
 void disable_debug(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[CLIENT] Debug Mode deactivated.", COLOR_CLIENT);
 
@@ -273,6 +290,7 @@ void disable_debug(tui_t* tui) {
     resize_client(tui);
 }
 
+/* Terminal Shutdown Animation - to be played whenever the client is shutting down */
 void shutdown_animation() {
     NCURSES_LOCK();
 

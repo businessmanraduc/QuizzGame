@@ -8,5 +8,6 @@
 
 void init_input(comm_buff_t*);
 char* get_input(WINDOW*);
+void process_user_command(const char*, tui_t*);
 
 #endif
