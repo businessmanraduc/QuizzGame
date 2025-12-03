@@ -5,7 +5,6 @@ volatile bool program_running = true;
 pthread_mutex_t resize_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ncurses_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-
 /* Set the running state of the Client */
 void set_program_running(bool state) {
     program_running = state;

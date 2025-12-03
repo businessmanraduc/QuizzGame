@@ -100,6 +100,9 @@ char* get_input(WINDOW* input_window, tui_t* tui) {
                 last_cols = COLS;
                 handle_resize(tui);
             }
+
+            if (tui->debug_mode)
+                update_debug_display(tui);
         }
         
         getmaxyx(input_window, actual_height, actual_width);

@@ -78,6 +78,7 @@ void clear_screen(WINDOW* window) {
 /* @param msg Message to be printed */
 /* @param color Color to be used for the message */
 void add_output_msg(WINDOW* output_window, const char* msg, output_color_t color) {
+    NCURSES_LOCK();
     pthread_mutex_lock(&resize_mutex);
 
     if (output_state.count < MAX_MESSAGES) {
@@ -96,7 +97,9 @@ void add_output_msg(WINDOW* output_window, const char* msg, output_color_t color
     if (has_colors())
         wattroff(output_window, COLOR_PAIR(color));
     wrefresh(output_window);
+
     pthread_mutex_unlock(&resize_mutex);
+    NCURSES_UNLOCK();
 }
 
 /* Redraw Input Window */
@@ -230,7 +233,7 @@ void handle_resize(tui_t* tui) {
     pthread_mutex_unlock(&resize_mutex);
 }
 
-/* Resize Thread */
+/* Resize Thread (deprecated and VERY buggy)*/
 /* @param arg Pointer which should point towards a tui_t struct */
 void* resize_thread(void* arg) {
     tui_t* tui = (tui_t*)arg;
@@ -304,14 +307,14 @@ void update_debug_display(tui_t* tui) {
     pthread_mutex_unlock(&resize_mutex);
 }
 
-/* Debug Thread */
+/* Debug Thread (deprecated)*/
 /* @param arg Pointer which should point towards a tui_t struct */
 void* debug_thread(void* arg) {
     tui_t* tui = (tui_t*)arg;
     add_output_msg(tui->output_terminal, "[DEBUG_THREAD] Starting...", COLOR_INFO);
     
     while (is_program_running() && tui->debug_mode) {
-        update_debug_display(tui);
+        
         usleep(100000);
     }
     
@@ -329,9 +332,9 @@ void enable_debug(tui_t* tui) {
     werase(stdscr);
     handle_resize(tui);
 
-    pthread_t debug_thread_id;
-    pthread_create(&debug_thread_id, NULL, debug_thread, tui);
-    pthread_detach(debug_thread_id);
+    //pthread_t debug_thread_id;
+    //pthread_create(&debug_thread_id, NULL, debug_thread, tui);
+    //pthread_detach(debug_thread_id);
 }
 
 /* Disable Debug-Mode */
