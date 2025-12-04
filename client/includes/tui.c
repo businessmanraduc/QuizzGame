@@ -17,13 +17,20 @@ void init_tui(tui_t* tui) {
     if (has_colors()) {
         start_color();
         use_default_colors();
-        init_pair(COLOR_DEFAULT, COLOR_WHITE, -1);
+        init_color(COLOR_RED, 999, 0, 0);
+        init_color(COLOR_GREEN, 0, 999, 0);
+        init_color(COLOR_YELLOW, 999, 999, 0);
+        init_color(COLOR_BLUE, 261, 460, 679);
+        init_color(COLOR_MAGENTA, 894, 382, 894);
+        init_color(COLOR_CYAN, 66, 656, 800);
+        init_color(COLOR_WHITE, 999, 999, 999);
         init_pair(COLOR_ERROR, COLOR_RED, -1);
-        init_pair(COLOR_WARNING, COLOR_YELLOW, -1);
         init_pair(COLOR_SUCCESS, COLOR_GREEN, -1);
-        init_pair(COLOR_INFO, COLOR_CYAN, -1);
+        init_pair(COLOR_WARNING, COLOR_YELLOW, -1);
+        init_pair(COLOR_INFO, COLOR_BLUE, -1);
         init_pair(COLOR_SERVER, COLOR_MAGENTA, -1);
-        init_pair(COLOR_CLIENT, COLOR_BLUE, -1);
+        init_pair(COLOR_CLIENT, COLOR_CYAN, -1);
+        init_pair(COLOR_DEFAULT, COLOR_WHITE, -1);
     }
     refresh();
 
@@ -46,10 +53,18 @@ void init_tui(tui_t* tui) {
     scrollok(tui->input_terminal, TRUE);
     keypad(tui->input_terminal, TRUE);
 
+    if (has_colors()) {
+        wattron(tui->output, COLOR_PAIR(COLOR_WHITE));
+        wattron(tui->input, COLOR_PAIR(COLOR_WHITE));
+    }
     box(tui->output, 0, 0);
     box(tui->input, 0, 0);
     mvwprintw(tui->output, 0, 2, " Output ");
     mvwprintw(tui->input, 0, 2, " Input ");
+    if (has_colors()) {
+        wattroff(tui->output, COLOR_PAIR(COLOR_WHITE));
+        wattroff(tui->input, COLOR_PAIR(COLOR_WHITE));
+    }
 
     wrefresh(tui->output);
     wrefresh(tui->input);
@@ -88,7 +103,13 @@ void redraw_input(WINDOW* input_window) {
     getmaxyx(input_window, height, width);
     if (height <= 0 || width <= 0) return;
     
+    
+    if (has_colors())
+        wattron(input_window, COLOR_PAIR(COLOR_WHITE));
     mvwprintw(input_window, 0, 1, "> ");
+    if (has_colors())
+        wattroff(input_window, COLOR_PAIR(COLOR_WHITE));
+        
     int x = 3, y = 0;
     if (command_buff.len > 0) {
         int max_chars = (command_buff.len < BUFF_SIZE - 1) ? command_buff.len : BUFF_SIZE - 1;
@@ -148,6 +169,8 @@ void redraw_debug(WINDOW* debug_window, WINDOW* input_window) {
     int line = 0;
     int debug_width = getmaxx(debug_window);
 
+    if (has_colors())
+        wattron(debug_window, COLOR_PAIR(COLOR_WHITE));
     mvwprintw(debug_window, line++, 1, "Server Status:");
     mvwprintw(debug_window, line++, 1, " - Online: %s", get_server_status() ? "YES" : "NO");
     mvwprintw(debug_window, line++, 1, " - Logged In: %s", client_state.loggedIn ? "YES" : "NO");
@@ -181,6 +204,8 @@ void redraw_debug(WINDOW* debug_window, WINDOW* input_window) {
             mvwprintw(debug_window, line++, 2, "%d: %s", i + 1, cmd_preview);
         }
     }
+    if (has_colors())
+        wattroff(debug_window, COLOR_PAIR(COLOR_WHITE));
 
     wrefresh(debug_window);
     wmove(input_window, command_buff.cursor_y, command_buff.cursor_x);
@@ -216,8 +241,14 @@ void resize_client(tui_t* tui) {
 
         mvwin(tui->debug, 0, tui->left_section_width + 1);
         mvwin(tui->debug_terminal, 1, tui->left_section_width + 2);
+
+        if (has_colors())
+            wattron(tui->debug, COLOR_PAIR(COLOR_WHITE));
         box(tui->debug, 0, 0);
         mvwprintw(tui->debug, 0, 2, " Debug ");
+        if (has_colors())
+            wattroff(tui->debug, COLOR_PAIR(COLOR_WHITE));
+
         for (int i = 0; i < total_height; i++)
             mvaddch(i, tui->left_section_width, ' ');
 
@@ -235,6 +266,11 @@ void resize_client(tui_t* tui) {
     wresize(tui->input_terminal, tui->lower_height - 2, tui->left_section_width - 2);
     mvwin(tui->input_terminal, tui->upper_height + 1, 1);
 
+    if (has_colors()) {
+        wattron(tui->input, COLOR_PAIR(COLOR_WHITE));
+        wattron(tui->output, COLOR_PAIR(COLOR_WHITE));
+    }
+
     werase(tui->output);
     box(tui->output, 0, 0);
     mvwprintw(tui->output, 0, 2, " Output ");
@@ -243,6 +279,11 @@ void resize_client(tui_t* tui) {
     box(tui->input, 0, 0);
     mvwprintw(tui->input, 0, 2, " Input ");
 
+    if (has_colors()) {
+        wattroff(tui->input, COLOR_PAIR(COLOR_WHITE));
+        wattroff(tui->output, COLOR_PAIR(COLOR_WHITE));
+    }
+    
     touchwin(tui->output);
     touchwin(tui->input);
     touchwin(tui->output_terminal);
@@ -303,6 +344,9 @@ void shutdown_animation() {
     reset_prog_mode();
     refresh();
     
+    if (has_colors())
+        attron(COLOR_PAIR(COLOR_WHITE));
+
     for (int wave = 0; wave < rows + cols; wave += 2) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -320,6 +364,9 @@ void shutdown_animation() {
         usleep(40000);
     }
     
+    if (has_colors())
+        attroff(COLOR_PAIR(COLOR_WHITE));
+
     clear();
     refresh();
 

@@ -12,13 +12,13 @@
 #define OUTPUT_RATIO 0.67
 
 typedef enum {
-    COLOR_DEFAULT = 1,
-    COLOR_ERROR = 2,
+    COLOR_ERROR = 1,
+    COLOR_SUCCESS = 2,
     COLOR_WARNING = 3,
-    COLOR_SUCCESS = 4,
-    COLOR_CLIENT = 5,
-    COLOR_SERVER = 6,
-    COLOR_INFO = 7
+    COLOR_INFO = 4,
+    COLOR_SERVER = 5,
+    COLOR_CLIENT = 6,
+    COLOR_DEFAULT = 7
 } output_color_t;
 
 typedef struct {

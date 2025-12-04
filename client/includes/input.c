@@ -74,6 +74,7 @@ char* get_input(WINDOW* input_window) {
 
         NCURSES_LOCK();
         waddch(input_window, ch);
+    
         command_buff.cursor_x++;
         if (command_buff.cursor_x > width - 2 && command_buff.cursor_y < height - 2) {
             command_buff.cursor_x = 1;
