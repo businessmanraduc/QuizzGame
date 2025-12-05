@@ -108,7 +108,8 @@ void process_user_command(const char* input, tui_t* tui) {
 
     if (strlen(command) > 0) {
         if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
-            send_command(tui, "quit");
+            if (get_server_status())
+                send_command(tui, "quit");
             add_output_msg(tui->output_terminal, "[CLIENT] Shutting down...", COLOR_MAGENTA);
             set_program_running(false);
             sleep(1);

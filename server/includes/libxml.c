@@ -1,0 +1,183 @@
+#include "libxml.h"
+
+void XMLAttribute_free(XMLAttribute_t* attr) {
+    free(attr->key);
+    free(attr->value);
+}
+
+void XMLAttributeList_init(XMLAttributeList* list) {
+    list->size = 1;
+    list->count = 0;
+    list->data = (XMLAttribute_t*) malloc(sizeof(XMLAttribute_t) * list->size);
+}
+
+void XMLAttributeList_add(XMLAttributeList* list, XMLAttribute_t* attr) {
+    while (list->count >= list->size) {
+        list->size *= 2;
+        list->data = (XMLAttribute_t*) realloc(list->data, sizeof(XMLAttribute_t) * list->size); 
+    }
+
+    list->data[list->count++] = *attr;
+}
+
+
+XMLNode_t* XMLNode_new(XMLNode_t* parent) {
+    XMLNode_t* node = (XMLNode_t*) malloc(sizeof(XMLNode_t));
+    node->parent = parent;
+    node->tag = NULL;
+    node->inner_text = NULL;
+    XMLAttributeList_init(&node->attributes);
+    return node;
+}
+
+XMLNode_t* XMLNode_free(XMLNode_t* node) {
+    if (node->tag)
+        free(node->tag);
+    if (node->inner_text)
+        free(node->inner_text);
+    for (int i = 0; i < node->attributes.count; i++)
+        XMLAttribute_free(&node->attributes.data[i]);
+    free(node); 
+}
+
+
+bool XMLDocument_load(XMLDocument_t* doc, const char* path) {
+    FILE* file = fopen(path, "r");
+    if (file == 0) {
+        printf("Error - '%s' failed to open!\n", path);
+        return false;
+    }
+
+    fseek(file, 0, SEEK_END);
+    int size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char* buff = (char*) malloc(sizeof(char) * size + 1);
+    fread(buff, 1, size, file);
+    fclose(file);
+    buff[size] = '\0';
+
+    doc->root = XMLNode_new(NULL);
+    char lex[256];
+    int lexi = 0, i = 0;
+    XMLNode_t* curr_node = NULL;
+
+    while (buff[i] != '\0') {
+        if (buff[i] == '<') {
+            lex[lexi] = '\0';
+
+            if (lexi > 0) { // current node has inner text
+                if (curr_node == NULL) {
+                    printf("Error - Text %s outside of document!\n", lex);
+                    return false;
+                }
+
+                curr_node->inner_text = strdup(lex);
+                lexi = 0;
+            }
+
+            // end of node
+            if (buff[i + 1] == '/') {
+                i += 2;
+                while(buff[i] != '>')
+                    lex[lexi++] = buff[i++];
+                lex[lexi] = '\0';
+                
+                if (curr_node == NULL) { // text before the root
+                    printf("Error - Already at the root!\n");
+                    return false;
+                }
+
+                if (strcmp(curr_node->tag, lex)) { // missmatching ending tag
+                    printf("Error - Missmatched tags between starting tag %s and ending tag %s!\n",
+                            curr_node->tag, lex);
+                    return false;
+                }
+
+                curr_node = curr_node->parent;
+                i++;
+                continue;
+            }
+
+            // set current node
+            if (!curr_node)
+                curr_node = doc->root;
+            else
+                curr_node = XMLNode_new(curr_node);
+
+            // start of tag
+            i++;
+            XMLAttribute_t curr_attr = {0, 0};
+            while(buff[i] != '>') {
+                lex[lexi++] = buff[i++];
+
+                // get tag name
+                if (buff[i] == ' ' && !curr_node->tag) {
+                    lex[lexi] = '\0';
+                    curr_node->tag = strdup(lex);
+                    lexi = 0;
+                    i++;
+                    continue;
+                }
+
+                // ignore other spaces
+                if (lex[lexi - 1] == ' ') {
+                    lexi--;
+                    continue;
+                }
+
+                // fetch attribute key
+                if (buff[i] == '=') {
+                    lex[lexi] = '\0';
+                    curr_attr.key = strdup(lex);
+                    lexi = 0;
+                    continue;
+                }
+
+                // fetch attribute value
+                if (buff[i] == '"') {
+                    if (!curr_attr.key) {
+                        printf("Error - Attribute value has no key!");
+                        return false;
+                    }
+
+                    lexi = 0;
+                    i++;
+
+                    while (buff[i] != '"')
+                        lex[lexi++] = buff[i++];
+                    lex[lexi] = '\0';
+                    curr_attr.value = strdup(lex);
+                    XMLAttributeList_add(&curr_node->attributes, &curr_attr);
+                    curr_attr = (XMLAttribute_t){0, 0};
+                    lexi = 0;
+                    i++;
+                    continue;
+                }
+            }
+
+            // set tag name if none
+            lex[lexi] = '\0';
+            if (!curr_node->tag)
+                curr_node->tag = strdup(lex);
+            // reset lexer
+
+
+            lexi = 0;
+            i++;
+            continue;
+        } else {
+            lex[lexi++] = buff[i++];
+        }
+    }
+
+    return true;
+}
+
+void XMLDocument_free(XMLDocument_t* doc) {
+    XMLNode_free(doc->root);
+}
+
+bool XMLDocument_save(XMLDocument_t* doc, const char* path) {
+
+}
