@@ -10,7 +10,7 @@ int main()
         for (int i = 0; i < fields->size; i++) {
             XMLNode* field = XMLNodeList_at(fields, i);
             XMLAttribute* type = XMLNode_attr(field, "type");
-            type->value = "";
+            type->value = strdup("");
         }
 
         XMLDocument_write(&doc, "out.xml", 4);

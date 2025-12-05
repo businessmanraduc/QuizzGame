@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define LEXER_BUFF_SIZE 4096
+
 //
 //  Definitions
 //
@@ -95,8 +97,17 @@ int ends_with(const char* haystack, const char* needle)
 
 void XMLAttribute_free(XMLAttribute* attr)
 {
-    free(attr->key);
-    free(attr->value);
+    if (!attr)
+        return;
+
+    if (attr->key) {
+        free(attr->key);
+        attr->key = NULL;
+    }
+    if (attr->value) {
+        free(attr->value);
+        attr->value = NULL;
+    }
 }
 
 void XMLAttributeList_init(XMLAttributeList* list)
@@ -140,7 +151,10 @@ XMLNode* XMLNodeList_at(XMLNodeList* list, int index)
 
 void XMLNodeList_free(XMLNodeList* list)
 {
-    free(list);
+    if (list) {
+        free(list->data);
+        free(list);
+    }
 }
 
 XMLNode* XMLNode_new(XMLNode* parent)
@@ -149,21 +163,32 @@ XMLNode* XMLNode_new(XMLNode* parent)
     node->parent = parent;
     node->tag = NULL;
     node->inner_text = NULL;
+    
     XMLAttributeList_init(&node->attributes);
     XMLNodeList_init(&node->children);
+    
     if (parent)
         XMLNodeList_add(&parent->children, node);
+    
     return node;
 }
 
 void XMLNode_free(XMLNode* node)
 {
+    if (!node)
+        return;
+        
     if (node->tag)
         free(node->tag);
     if (node->inner_text)
         free(node->inner_text);
+
     for (int i = 0; i < node->attributes.size; i++)
         XMLAttribute_free(&node->attributes.data[i]);
+
+    for (int i = 0; i < node->children.size; i++)
+        XMLNode_free(node->children.data[i]);
+
     free(node);
 }
 
@@ -295,7 +320,7 @@ int XMLDocument_load(XMLDocument* doc, const char* path)
 
     doc->root = XMLNode_new(NULL);
 
-    char lex[256];
+    char lex[LEXER_BUFF_SIZE];
     int lexi = 0;
     int i = 0;
 
@@ -368,8 +393,12 @@ int XMLDocument_load(XMLDocument* doc, const char* path)
                     XMLNode* desc = XMLNode_new(NULL);
                     parse_attrs(buf, &i, lex, &lexi, desc);
 
-                    doc->version = XMLNode_attr_val(desc, "version");
-                    doc->encoding = XMLNode_attr_val(desc, "encoding");
+                    char* version = XMLNode_attr_val(desc, "version");
+                    char* encoding = XMLNode_attr_val(desc, "encoding");
+                    doc->version = version ? strdup(version) : strdup("1.0");
+                    doc->encoding = encoding ? strdup(encoding) : strdup("UTF-8");
+                    
+                    // XMLNode_free(desc);
                     continue;
                 }
             }
@@ -450,11 +479,21 @@ int XMLDocument_write(XMLDocument* doc, const char* path, int indent)
     );
     node_out(file, doc->root, indent, 0);
     fclose(file);
+    return true;
 }
 
 void XMLDocument_free(XMLDocument* doc)
 {
-    XMLNode_free(doc->root);
+    if (!doc)
+        return;
+    
+    if (doc->root)
+        XMLNode_free(doc->root);
+
+    if (doc->encoding)
+        free(doc->encoding);
+    if (doc->version)
+        free(doc->version);
 }
 
 #endif
