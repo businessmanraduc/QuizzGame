@@ -61,6 +61,9 @@ XMLNode* XMLNode_child(XMLNode* parent, int index);
 XMLNodeList* XMLNode_children(XMLNode* parent, const char* tag);
 char* XMLNode_attr_val(XMLNode* node, char* key);
 XMLAttribute* XMLNode_attr(XMLNode* node, char* key);
+XMLNode* XMLNode_first_child(XMLNode* parent, const char* tag);
+XMLNode* XMLNode_next_sibling(XMLNode* node);
+XMLNode* XMLNode_prev_sibling(XMLNode* node);
 
 struct _XMLDocument
 {
@@ -70,16 +73,37 @@ struct _XMLDocument
 };
 typedef struct _XMLDocument XMLDocument;
 
-int XMLDocument_load(XMLDocument* doc, const char* path);
-int XMLDocument_write(XMLDocument* doc, const char* path, int indent);
+enum _XMLError {
+    XML_SUCCESS = 0,
+    XML_ERROR_FILE,
+    XML_ERROR_PARSER,
+    XML_ERROR_MEMORY,
+    XML_ERROR_INVALID
+};
+typedef enum _XMLError XMLError;
+
+const char* XMLDocument_etos(XMLError err);
+XMLError XMLDocument_load(XMLDocument* doc, const char* path);
+bool XMLDocument_write(XMLDocument* doc, const char* path, int indent);
 void XMLDocument_free(XMLDocument* doc);
+
+
+//
+//  Macros
+//
+#define XML_FOREACH_CHILD(parent, child) \
+    for (int _i = 0; _i < (parent)->children.size && ((child) = (parent)->children.data[_i]); _i++)
+
+#define XML_FOREACH_ATTR(node, attr) \
+    for (int _j = 0; _j < (node)->attributes.size && ((attr) = &(node)->attributes.data[_j]); _j++)
+
 
 //
 //  Implementation
 //
 
 
-int ends_with(const char* haystack, const char* needle)
+bool ends_with(const char* haystack, const char* needle)
 {
     int h_len = strlen(haystack);
     int n_len = strlen(needle);
@@ -124,7 +148,9 @@ void XMLAttributeList_add(XMLAttributeList* list, XMLAttribute* attr)
         list->data = (XMLAttribute*) realloc(list->data, sizeof(XMLAttribute) * list->heap_size);
     }
 
-    list->data[list->size++] = *attr;
+    list->data[list->size].key = (attr->key) ? strdup(attr->key) : NULL;
+    list->data[list->size].value = (attr->value) ? strdup(attr->value) : NULL;
+    list->size++;
 }
 
 void XMLNodeList_init(XMLNodeList* list)
@@ -231,12 +257,59 @@ XMLAttribute* XMLNode_attr(XMLNode* node, char* key)
     return NULL;
 }
 
+XMLNode* XMLNode_first_child(XMLNode* parent, const char* tag) {
+    for (int i = 0; i < parent->children.size; i++) {
+        XMLNode* child = parent->children.data[i];
+        if (!tag || !strcmp(child->tag, tag))
+            return child;
+    }
+
+    return NULL;
+}
+
+XMLNode* XMLNode_next_sibling(XMLNode* node) {
+    if (!node || !node->parent)
+        return NULL;
+
+    XMLNodeList* list = &node->parent->children;
+    for (int i = 0; i < list->size - 1; i++) {
+        if (list->data[i] == node)
+            return list->data[i + 1];
+    }
+
+    return NULL;
+}
+
+XMLNode* XMLNode_prev_sibling(XMLNode* node) {
+    if (!node || !node->parent)
+        return NULL;
+
+    XMLNodeList* list = &node->parent->children;
+    for (int i = list->size - 1; i > 0; i--) {
+        if (list->data[i] == node)
+            return list->data[i - 1];
+    }
+
+    return NULL;
+}
+
 enum _TagType
 {
     TAG_START,
     TAG_INLINE
 };
 typedef enum _TagType TagType;
+
+const char* XMLDocument_etos(XMLError err) {
+    switch (err) {
+        case XML_SUCCESS: return "Success";
+        case XML_ERROR_FILE: return "File error";
+        case XML_ERROR_PARSER: return "Parsing error";
+        case XML_ERROR_MEMORY: return "Memory error";
+        case XML_ERROR_INVALID: return "Invalid operation";
+        default: return "Unknown error";
+    }
+}
 
 static TagType parse_attrs(char* buf, int* i, char* lex, int* lexi, XMLNode* curr_node)
 {
@@ -301,12 +374,12 @@ static TagType parse_attrs(char* buf, int* i, char* lex, int* lexi, XMLNode* cur
     return TAG_START;
 }
 
-int XMLDocument_load(XMLDocument* doc, const char* path)
+XMLError XMLDocument_load(XMLDocument* doc, const char* path)
 {
     FILE* file = fopen(path, "r");
     if (!file) {
         fprintf(stderr, "Could not load file from '%s'\n", path);
-        return false;
+        return XML_ERROR_FILE;
     }
 
     fseek(file, 0, SEEK_END);
@@ -335,7 +408,7 @@ int XMLDocument_load(XMLDocument* doc, const char* path)
             if (lexi > 0) {
                 if (!curr_node) {
                     fprintf(stderr, "Text outside of document\n");
-                    return false;
+                    return XML_ERROR_PARSER;
                 }
 
                 curr_node->inner_text = strdup(lex);
@@ -351,12 +424,12 @@ int XMLDocument_load(XMLDocument* doc, const char* path)
 
                 if (!curr_node) {
                     fprintf(stderr, "Already at the root\n");
-                    return false;
+                    return XML_ERROR_PARSER;
                 }
 
                 if (strcmp(curr_node->tag, lex)) {
                     fprintf(stderr, "Mismatched tags (%s != %s)\n", curr_node->tag, lex);
-                    return false;
+                    return XML_ERROR_PARSER;
                 }
 
                 curr_node = curr_node->parent;
@@ -398,7 +471,7 @@ int XMLDocument_load(XMLDocument* doc, const char* path)
                     doc->version = version ? strdup(version) : strdup("1.0");
                     doc->encoding = encoding ? strdup(encoding) : strdup("UTF-8");
                     
-                    // XMLNode_free(desc);
+                    XMLNode_free(desc);
                     continue;
                 }
             }
@@ -428,7 +501,7 @@ int XMLDocument_load(XMLDocument* doc, const char* path)
         }
     }
 
-    return true;
+    return XML_SUCCESS;
 }
 
 static void node_out(FILE* file, XMLNode* node, int indent, int times)
@@ -464,7 +537,7 @@ static void node_out(FILE* file, XMLNode* node, int indent, int times)
     }
 }
 
-int XMLDocument_write(XMLDocument* doc, const char* path, int indent)
+bool XMLDocument_write(XMLDocument* doc, const char* path, int indent)
 {
     FILE* file = fopen(path, "w");
     if (!file) {
