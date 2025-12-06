@@ -16,115 +16,204 @@ extern int question_count;
 #define White   "\033[0;37m"
 
 void load_users() {
-    xmlDoc* doc = xmlReadFile("data/users.xml", NULL, 0);
-    if (doc == NULL) {
-        printf(Yellow"[SERVER-XML] No users.xml found, starting with empty user database...\n"Clear);
+    XMLDocument doc;
+    XMLError err = XMLDocument_load(&doc, "data/users.xml");
+    
+    if (err != XML_SUCCESS) {
+        if (err == XML_ERROR_FILE) {
+            printf(Yellow"[SERVER-XML] No users.xml found, starting with empty user database...\n"Clear);
+        } else {
+            printf(Red"[SERVER-XML] Error loading users.xml: %s\n"Clear, XMLDocument_etos(err));
+        }
         return;
     }
 
-    xmlNode* root = xmlDocGetRootElement(doc);
-    for (xmlNode* node = root->children; node != NULL; node = node->next) {
-        if (node->type == XML_ELEMENT_NODE && xmlStrcmp(node->name, (const xmlChar*)"user") == 0) {
-            user_data_t* user = malloc(sizeof(user_data_t));
-            for (xmlNode* user_node = node->children; user_node != NULL; user_node = user_node->next) {
-                if (user_node->type == XML_ELEMENT_NODE) {
-                    char* content = (char*)xmlNodeGetContent(user_node);
-                    if (xmlStrcmp(user_node->name, (const xmlChar*)"username") == 0)
-                        strncpy(user->username, content, MAX_NAME_LEN - 1);
-                    else if (xmlStrcmp(user_node->name, (const xmlChar*)"total_points") == 0)
-                        user->total_points = atoi(content);
-                    else if (xmlStrcmp(user_node->name, (const xmlChar*)"games_played") == 0)
-                        user->games_played = atoi(content);
-                    else if (xmlStrcmp(user_node->name, (const xmlChar*)"max_streak") == 0)
-                        user->max_streak = atoi(content);
-                    else if (xmlStrcmp(user_node->name, (const xmlChar*)"current_streak") == 0)
-                        user->curr_streak = atoi(content);
-                    else if (xmlStrcmp(user_node->name, (const xmlChar*)"last_login") == 0)
-                        strncpy(user->last_login, content, sizeof(user->last_login) - 1);
-
-                    xmlFree(content);
-                }
-            }
-            users = realloc(users, (user_count + 1) * sizeof(user_data_t*));
-            users[user_count] = user;
-            user_count++;
-        }
+    // Get all user nodes using the first version with attributes
+    XMLNode* root = XMLNode_child(doc.root, 0);
+    XMLNode* user_node;
+    if (!root || strcmp(root->tag, "users") != 0) {
+        printf(Red"[SERVER-XML] Invalid users.xml format\n"Clear);
+        XMLDocument_free(&doc);
+        return;
     }
 
-    xmlFreeDoc(doc);
+    XML_FOREACH_CHILD(root, user_node) {
+        if (!user_node->tag || strcmp(user_node->tag, "user") != 0)
+            continue;
+        
+        user_data_t* user = malloc(sizeof(user_data_t));
+        if (!user) continue;
+        
+        // Extract attributes from the user node
+        char* username = XMLNode_attr_val(user_node, "username");
+        if (username) {
+            strncpy(user->username, username, MAX_NAME_LEN - 1);
+            user->username[MAX_NAME_LEN - 1] = '\0';
+        }
+        
+        char* points = XMLNode_attr_val(user_node, "points");
+        user->total_points = points ? atoi(points) : 0;
+        
+        char* games = XMLNode_attr_val(user_node, "games");
+        user->games_played = games ? atoi(games) : 0;
+        
+        char* wins = XMLNode_attr_val(user_node, "wins");
+        user->games_won = wins ? atoi(wins) : 0;
+        
+        char* max_streak = XMLNode_attr_val(user_node, "max_streak");
+        user->max_streak = max_streak ? atoi(max_streak) : 0;
+        
+        char* current_streak = XMLNode_attr_val(user_node, "current_streak");
+        user->curr_streak = current_streak ? atoi(current_streak) : 0;
+        
+        XMLNode* login_child = XMLNode_child(user_node, 2);
+        char* last_login = login_child->inner_text;
+        //printf("[DEBUG] last_login value : %s\n\n", last_login);
+        if (last_login) {
+            strncpy(user->last_login, last_login, sizeof(user->last_login) - 1);
+            user->last_login[sizeof(user->last_login) - 1] = '\0';
+        }
+        
+        // Add to users array
+        users = realloc(users, (user_count + 1) * sizeof(user_data_t*));
+        users[user_count] = user;
+        user_count++;
+    }
+
+    XMLDocument_free(&doc);
     printf(Cyan"[SERVER-XML] Loaded %d users from database\n"Clear, user_count);
 }
 
 void load_questions() {
-    xmlDoc* doc = xmlReadFile("data/questions.xml", NULL, 0);
-    if (doc == NULL) {
-        printf(Red"[SERVER-XML] Error - questions.xml not found!\n"Clear);
+    XMLDocument doc;
+    XMLError err = XMLDocument_load(&doc, "data/questions.xml");
+    
+    if (err != XML_SUCCESS) {
+        printf(Red"[SERVER-XML] Error - questions.xml not found or invalid: %s\n"Clear, XMLDocument_etos(err));
         exit(1);
     }
 
-    xmlNode* root = xmlDocGetRootElement(doc);
-    for (xmlNode* node = root->children; node != NULL; node = node->next) {
-        if (node->type == XML_ELEMENT_NODE && xmlStrcmp(node->name, (const xmlChar*)"question") == 0) {
-            question_t* question = malloc(sizeof(question_t));
-            for (xmlNode* q_node = node->children; q_node != NULL; q_node = q_node->next) {
-                if (q_node->type == XML_ELEMENT_NODE) {
-                    char* content = (char*)xmlNodeGetContent(q_node);
-                    if (xmlStrcmp(q_node->name, (const xmlChar*)"id") == 0)
-                        question->id = atoi(content);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"text") == 0)
-                        strncpy(question->text, content, BUFF_SIZE);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"option_a") == 0)
-                        strncpy(question->option_a, content, Q_OPTION_SIZE);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"option_b") == 0)
-                        strncpy(question->option_b, content, Q_OPTION_SIZE);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"option_c") == 0)
-                        strncpy(question->option_c, content, Q_OPTION_SIZE);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"option_d") == 0)
-                        strncpy(question->option_d, content, Q_OPTION_SIZE);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"correct_answer") == 0)
-                        question->correct_answer = content[0];
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"points") == 0)
-                        question->points = atoi(content);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"category") == 0)
-                        strncpy(question->category, content, sizeof(question->category) - 1);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"difficulty") == 0)
-                        strncpy(question->difficulty, content, sizeof(question->difficulty) - 1);
-                    else if (xmlStrcmp(q_node->name, (const xmlChar*)"time_limit") == 0)
-                        question->time_limit = atoi(content);
-
-                    xmlFree(content);
-                }
-            }
-
-            questions = realloc(questions, (question_count + 1) * sizeof(question_t*));
-            questions[question_count] = question;
-            question_count++;
+    XMLNode* root = XMLNode_child(doc.root, 0);
+    XMLNode* question_node;
+    XML_FOREACH_CHILD(root, question_node) {
+        if (!question_node->tag || strcmp(question_node->tag, "question") != 0)
+            continue;
+        
+        question_t* question = malloc(sizeof(question_t));
+        if (!question) continue;
+        
+        // Get all child elements of the question
+        XMLNode* field_node;
+        XML_FOREACH_CHILD(question_node, field_node) {
+            if (!field_node->tag || !field_node->inner_text)
+                continue;
+            
+            if (strcmp(field_node->tag, "id") == 0)
+                question->id = atoi(field_node->inner_text);
+            else if (strcmp(field_node->tag, "text") == 0)
+                strncpy(question->text, field_node->inner_text, BUFF_SIZE);
+            else if (strcmp(field_node->tag, "option_a") == 0)
+                strncpy(question->option_a, field_node->inner_text, Q_OPTION_SIZE);
+            else if (strcmp(field_node->tag, "option_b") == 0)
+                strncpy(question->option_b, field_node->inner_text, Q_OPTION_SIZE);
+            else if (strcmp(field_node->tag, "option_c") == 0)
+                strncpy(question->option_c, field_node->inner_text, Q_OPTION_SIZE);
+            else if (strcmp(field_node->tag, "option_d") == 0)
+                strncpy(question->option_d, field_node->inner_text, Q_OPTION_SIZE);
+            else if (strcmp(field_node->tag, "correct_answer") == 0)
+                question->correct_answer = field_node->inner_text[0];
+            else if (strcmp(field_node->tag, "points") == 0)
+                question->points = atoi(field_node->inner_text);
+            else if (strcmp(field_node->tag, "category") == 0)
+                strncpy(question->category, field_node->inner_text, sizeof(question->category) - 1);
+            else if (strcmp(field_node->tag, "difficulty") == 0)
+                strncpy(question->difficulty, field_node->inner_text, sizeof(question->difficulty) - 1);
+            else if (strcmp(field_node->tag, "time_limit") == 0)
+                question->time_limit = atoi(field_node->inner_text);
         }
+        
+        questions = realloc(questions, (question_count + 1) * sizeof(question_t*));
+        questions[question_count] = question;
+        question_count++;
     }
 
-    xmlFreeDoc(doc);
+    XMLDocument_free(&doc);
     printf(Cyan"[SERVER-XML] Loaded %d questions\n"Clear, question_count);
 }
 
 void save_users() {
-    xmlDoc* doc = xmlNewDoc((const xmlChar*)"1.0");
-    xmlNode* root = xmlNewNode(NULL, (const xmlChar*)"users");
-    xmlDocSetRootElement(doc, root);
+    XMLDocument doc;
+    doc.version = strdup("1.0");
+    doc.encoding = strdup("UTF-8");
+    doc.root = XMLNode_new(NULL);
+    doc.root->tag = NULL;
 
+    XMLNode* users_node = XMLNode_new(doc.root);
+    users_node->tag = strdup("users");
+    
     for (int i = 0; i < user_count; i++) {
-        xmlNode* user_node = xmlNewChild(root, NULL, (const xmlChar*)"user", NULL);
-        xmlNewChild(user_node, NULL, (const xmlChar*)"username", (const xmlChar*)users[i]->username);
-        xmlNewChild(user_node, NULL, (const xmlChar*)"total_points", (const xmlChar*)int_to_str(users[i]->total_points));
-        xmlNewChild(user_node, NULL, (const xmlChar*)"games_played", (const xmlChar*)int_to_str(users[i]->games_played));
-        xmlNewChild(user_node, NULL, (const xmlChar*)"games_won", (const xmlChar*)int_to_str(users[i]->games_won));
-        xmlNewChild(user_node, NULL, (const xmlChar*)"max_streak", (const xmlChar*)int_to_str(users[i]->max_streak));
-        xmlNewChild(user_node, NULL, (const xmlChar*)"current_streak", (const xmlChar*)int_to_str(users[i]->curr_streak));
-        xmlNewChild(user_node, NULL, (const xmlChar*)"last_login", (const xmlChar*)users[i]->last_login);
+        XMLNode* user_node = XMLNode_new(users_node);
+        user_node->tag = strdup("user");
+        
+        // Add username attribute
+        XMLAttribute attr;
+        attr.key = strdup("username");
+        attr.value = strdup(users[i]->username);
+        XMLAttributeList_add(&user_node->attributes, &attr);
+        
+        // Create stats node
+        XMLNode* stats_node = XMLNode_new(user_node);
+        stats_node->tag = strdup("stats");
+        
+        char buffer[32];
+        
+        snprintf(buffer, sizeof(buffer), "%d", users[i]->total_points);
+        attr.key = strdup("points");
+        attr.value = strdup(buffer);
+        XMLAttributeList_add(&stats_node->attributes, &attr);
+        
+        snprintf(buffer, sizeof(buffer), "%d", users[i]->games_played);
+        attr.key = strdup("games");
+        attr.value = strdup(buffer);
+        XMLAttributeList_add(&stats_node->attributes, &attr);
+        
+        snprintf(buffer, sizeof(buffer), "%d", users[i]->games_won);
+        attr.key = strdup("wins");
+        attr.value = strdup(buffer);
+        XMLAttributeList_add(&stats_node->attributes, &attr);
+        
+        // Create streaks node
+        XMLNode* streaks_node = XMLNode_new(user_node);
+        streaks_node->tag = strdup("streaks");
+        
+        snprintf(buffer, sizeof(buffer), "%d", users[i]->max_streak);
+        attr.key = strdup("max");
+        attr.value = strdup(buffer);
+        XMLAttributeList_add(&streaks_node->attributes, &attr);
+        
+        snprintf(buffer, sizeof(buffer), "%d", users[i]->curr_streak);
+        attr.key = strdup("current");
+        attr.value = strdup(buffer);
+        XMLAttributeList_add(&streaks_node->attributes, &attr);
+        
+        // Create last_login node with text content
+        XMLNode* last_login_node = XMLNode_new(user_node);
+        last_login_node->tag = strdup("last_login");
+        
+        char time_buff[20];
+        strncpy(time_buff, users[i]->last_login, sizeof(time_buff) - 1);
+        time_buff[sizeof(time_buff) - 1] = '\0';
+        last_login_node->inner_text = strdup(time_buff);
     }
-
-    xmlSaveFormatFile("data/users.xml", doc, 1);
-    xmlFreeDoc(doc);
-    printf(Cyan"[SERVER-XML] Saved users to database\n"Clear);
+    
+    bool success = XMLDocument_write(&doc, "data/users.xml", 2);
+    if (!success) {
+        printf(Red"[SERVER-XML] Error saving users to database\n"Clear);
+    } else {
+        printf(Cyan"[SERVER-XML] Saved users to database\n"Clear);
+    }
+    
+    XMLDocument_free(&doc);
 }
 
 char* int_to_str(int value) {
@@ -144,6 +233,7 @@ user_data_t* find_user(const char* username) {
 user_data_t* create_user(const char* username) {
     user_data_t* user = malloc(sizeof(user_data_t));
     strncpy(user->username, username, MAX_NAME_LEN - 1);
+    user->username[MAX_NAME_LEN - 1] = '\0';
     user->total_points = 0;
     user->games_played = 0;
     user->games_won = 0;

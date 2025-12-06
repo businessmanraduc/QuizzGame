@@ -7,8 +7,6 @@
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <libxml2/libxml/parser.h>
-#include <libxml2/libxml/tree.h>
 #include <time.h>
 
 #define BUFF_SIZE 1024

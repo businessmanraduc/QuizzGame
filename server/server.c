@@ -1,5 +1,6 @@
 #include "includes/utils.h"
 #include "includes/xml.h"
+#include <time.h>
 
 #define Clear   "\033[3;0;0m"
 #define Black   "\033[0;30m"
@@ -106,7 +107,7 @@ clear                 => Clear terminal\n", 569, 0);
                 snprintf(resp, sizeof(resp),
                          "RESP:Stats: %s | Points: %d | Games: %d | Wins: %d | Win Rate: %.1f | Max Streak: %d",
                          client->username, user_data->total_points, user_data->games_played, user_data->games_won, 
-                         (user_data-> games_played > 0) ? (100.0 * user_data->games_won / user_data->games_played) : 0.0,
+                         (user_data->games_played > 0) ? (100.0 * user_data->games_won / user_data->games_played) : 0.0,
                          user_data->max_streak);
                 send(client->socket_fd, resp, strlen(resp), 0);
             } 
@@ -123,7 +124,7 @@ clear                 => Clear terminal\n", 569, 0);
 }
 
 int main() {
-    LIBXML_TEST_VERSION
+    //LIBXML_TEST_VERSION
 
     load_users();
     load_questions();
@@ -158,6 +159,6 @@ int main() {
         printf(Blue"[SERVER] Created new thread for new client.\nWaiting new connections...\n"Clear);
     }
 
-    xmlCleanupParser();
+    //xmlCleanupParser();
     return 0;
 }

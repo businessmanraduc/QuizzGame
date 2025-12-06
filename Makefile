@@ -1,12 +1,11 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-XML_CFLAGS = $(shell pkg-config --cflags libxml-2.0)
-XML_LIBS = $(shell pkg-config --libs libxml-2.0)
 
 TARGET_DIR = build
 
 SERVER_SRCS = server/server.c \
-              server/includes/xml.c
+              server/includes/xml.c \
+			  server/includes/libxml.c
 
 CLIENT_SRCS = client/client.c \
 			  client/includes/tui.c \
@@ -21,7 +20,7 @@ CLIENT_TARGET = $(TARGET_DIR)/client
 all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
 $(SERVER_TARGET): $(SERVER_SRCS) | $(TARGET_DIR)
-	$(CC) $(CFLAGS) $(XML_CFLAGS) $(SERVER_SRCS) -o $@ $(XML_LIBS) -lpthread
+	$(CC) $(CFLAGS) $(SERVER_SRCS) -o $@ -lpthread
 
 $(CLIENT_TARGET): $(CLIENT_SRCS) | $(TARGET_DIR)
 	$(CC) $(CFLAGS) $(CLIENT_SRCS) -o $@ -lpthread -lm -lncurses

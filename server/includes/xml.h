@@ -1,5 +1,6 @@
 #pragma once
 #include "utils.h"
+#include "libxml.h"
 
 void load_users();
 void load_questions();
