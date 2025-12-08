@@ -3,7 +3,7 @@
   <user username="meow">
     <stats points="0" games="0" wins="0" />
     <streaks max="0" current="0" />
-    <last_login>2025-12-04 12:44:01</last_login>
+    <last_login>2025-12-08 11:07:27</last_login>
   </user>
   <user username="hotdog_profi">
     <stats points="0" games="0" wins="0" />
@@ -18,6 +18,6 @@
   <user username="woof">
     <stats points="0" games="0" wins="0" />
     <streaks max="0" current="0" />
-    <last_login>2025-12-06 23:45:56</last_login>
+    <last_login>2025-12-07 21:39:21</last_login>
   </user>
 </users>
