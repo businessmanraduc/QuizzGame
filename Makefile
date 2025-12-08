@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -std=gnu99
+CFLAGS = -Wall -Wextra -g
 
 TARGET_DIR = build
 

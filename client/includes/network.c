@@ -101,7 +101,7 @@ bool connect_to_server(tui_t* tui) {
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(8080);
-    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    inet_pton(AF_INET, "10.100.0.30", &server_addr.sin_addr);
     
     if (connect(client_state.socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         add_output_msg(tui->output_terminal, "[CLIENT] Error - Connection to server failed.\n", COLOR_ERROR);
