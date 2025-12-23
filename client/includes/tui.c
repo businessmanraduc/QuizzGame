@@ -8,7 +8,7 @@ comm_buff_t command_buff = {0};
 
 /* Initialize Terminal User Interface */
 /* @param tui Pointer to the main TUI struct */
-void init_tui(tui_t* tui) {
+void init_tui(tui_t* tui, const char* addr) {
     initscr();
     timeout(50);
     noecho();
@@ -48,6 +48,8 @@ void init_tui(tui_t* tui) {
     tui->debug = NULL;
     tui->debug_terminal = NULL;
     tui->debug_mode = false;
+
+    tui->sv_addr = addr;
 
     scrollok(tui->output_terminal, TRUE);
     scrollok(tui->input_terminal, TRUE);

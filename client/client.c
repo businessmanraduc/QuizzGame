@@ -48,13 +48,22 @@ void main_thread(tui_t* tui) {
     add_output_msg(tui->output_terminal, "[MAIN_THREAD] Shutting down...", COLOR_CLIENT);
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     tui_t client_tui;
+    char sv_addr[256] = "";
+    if (argc == 1)
+        strcpy(sv_addr, "127.0.0.1");
+    else
+        strcpy(sv_addr, argv[1]);
+
     signal(SIGINT, handle_sigint);
     signal(SIGWINCH, handle_sigwinch);
-    init_tui(&client_tui);
+    printf("[CLIENT_DEBUG] Signal handlers set. Initiating TUI...\n");
+    init_tui(&client_tui, sv_addr);
+    //printf("[CLIENT_DEBUG] TUI Initialized. Starting history...\n");
     init_history(&input_state);
     init_input(&command_buff);
+    //printf("[CLIENT_DEBUG] History Initialized. Engaging connection with server...\n");
 
     if (!connect_to_server(&client_tui)) {
         add_output_msg(client_tui.output_terminal, "[CLIENT] Error - Failed to connect to server automatically.", COLOR_ERROR);
