@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -g
 TARGET_DIR = build
 
 SERVER_SRCS = server/server.c \
-              server/includes/xml.c \
+              server/includes/data_loader.c \
 			  server/includes/libxml.c
 
 CLIENT_SRCS = client/client.c \

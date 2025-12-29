@@ -1,42 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <questions>
-    <question>
-        <id>1</id>
-        <text>What does HTTP stand for?</text>
-        <option_a>Hyper Text Transfer Protocol</option_a>
-        <option_b>High Transfer Text Protocol</option_b>
-        <option_c>Hyper Transfer Text Protocol</option_c>
-        <option_d>High Text Transfer Process</option_d>
-        <correct_answer>A</correct_answer>
-        <points>10</points>
-        <category>Networking</category>
-        <difficulty>easy</difficulty>
-        <time_limit>30</time_limit>
-    </question>
-    <question>
-        <id>2</id>
-        <text>Which of these is not a programming paradigm?</text>
-        <option_a>Object-Oriented</option_a>
-        <option_b>Functional</option_b>
-        <option_c>Procedural</option_c>
-        <option_d>Hyperbolic</option_d>
-        <correct_answer>D</correct_answer>
-        <points>15</points>
-        <category>Programming</category>
-        <difficulty>medium</difficulty>
-        <time_limit>25</time_limit>
-    </question>
-    <question>
-        <id>3</id>
-        <text>What is the capital of France?</text>
-        <option_a>London</option_a>
-        <option_b>Paris</option_b>
-        <option_c>Berlin</option_c>
-        <option_d>Madrid</option_d>
-        <correct_answer>B</correct_answer>
-        <points>10</points>
-        <category>Geography</category>
-        <difficulty>easy</difficulty>
-        <time_limit>30</time_limit>
-    </question>
+  <question id="1" category="Networking" difficulty="easy" points="10" time_limit="30">
+    <text>What does HTTP stand for?</text>
+    <options>
+      <option letter="A">Hyper Text Transfer Protocol</option>
+      <option letter="B">High Transfer Text Protocol</option>
+      <option letter="C">Hyper Transfer Text Protocol</option>
+      <option letter="D">High Text Transfer Process</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  <question id="2" category="Programming" difficulty="medium" points="15" time_limit="25">
+    <text>Which of these is not a programming paradigm?</text>
+    <options>
+      <option letter="A">Object-Oriented</option>
+      <option letter="B">Functional</option>
+      <option letter="C">Procedural</option>
+      <option letter="D">Hyperbolic</option>
+    </options>
+    <correct_answer>D</correct_answer>
+  </question>
+  <question id="3" category="Geography" difficulty="easy" points="10" time_limit="30">
+    <text>What is the capital of France?</text>
+    <options>
+      <option letter="A">London</option>
+      <option letter="B">Paris</option>
+      <option letter="C">Berlin</option>
+      <option letter="D">Madrid</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
 </questions>

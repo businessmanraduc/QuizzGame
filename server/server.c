@@ -1,5 +1,5 @@
 #include "includes/utils.h"
-#include "includes/xml.h"
+#include "includes/data_loader.h"
 #include <time.h>
 
 #define Clear   "\033[3;0;0m"
@@ -124,8 +124,6 @@ clear                 => Clear terminal\n", 569, 0);
 }
 
 int main() {
-    //LIBXML_TEST_VERSION
-
     load_users();
     load_questions();
 
@@ -159,6 +157,5 @@ int main() {
         printf(Blue"[SERVER] Created new thread for new client.\nWaiting new connections...\n"Clear);
     }
 
-    //xmlCleanupParser();
     return 0;
 }

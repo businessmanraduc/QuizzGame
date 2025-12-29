@@ -1,4 +1,4 @@
-#include "xml.h"
+#include "data_loader.h"
 
 extern user_data_t** users;
 extern int user_count;
@@ -94,6 +94,11 @@ void load_questions() {
     }
 
     XMLNode* root = XMLNode_child(doc.root, 0);
+    if (!root || !root->tag || strcmp(root->tag, "questions") != 0) {
+        printf(Red"[SERVER-XML] Invalid questions.xml format - expected <questions> as root\n"Clear);
+        exit(1);
+    }
+
     XMLNode* question_node;
     XML_FOREACH_CHILD(root, question_node) {
         if (!question_node->tag || strcmp(question_node->tag, "question") != 0)
@@ -101,35 +106,68 @@ void load_questions() {
         
         question_t* question = malloc(sizeof(question_t));
         if (!question) continue;
-        
-        // Get all child elements of the question
-        XMLNode* field_node;
-        XML_FOREACH_CHILD(question_node, field_node) {
-            if (!field_node->tag || !field_node->inner_text)
+
+        memset(question, 0, sizeof(question_t));
+
+        char* id_attr = XMLNode_attr_val(question_node, "id");
+        if (id_attr)
+            question->id = atoi(id_attr);
+
+        char* points_attr = XMLNode_attr_val(question_node, "points");
+        if (points_attr)
+            question->points = atoi(points_attr);
+
+        char* time_limit_attr = XMLNode_attr_val(question_node, "time_limit");
+        if (time_limit_attr)
+            question->time_limit = atoi(time_limit_attr);
+
+        char* category_attr = XMLNode_attr_val(question_node, "category");
+        if (category_attr) {
+            strncpy(question->category, category_attr, sizeof(question->category) - 1);
+            question->category[sizeof(question->category) - 1] = '\0';
+        }
+
+        char* difficulty_attr = XMLNode_attr_val(question_node, "difficulty");
+        if (difficulty_attr) {    
+            strncpy(question->difficulty, difficulty_attr, sizeof(question->difficulty) - 1);
+            question->difficulty[sizeof(question->difficulty) - 1] = '\0';
+        }
+
+        XMLNode* child_node;
+        XML_FOREACH_CHILD(question_node, child_node) {
+            if (!child_node->tag)
                 continue;
             
-            if (strcmp(field_node->tag, "id") == 0)
-                question->id = atoi(field_node->inner_text);
-            else if (strcmp(field_node->tag, "text") == 0)
-                strncpy(question->text, field_node->inner_text, BUFF_SIZE);
-            else if (strcmp(field_node->tag, "option_a") == 0)
-                strncpy(question->option_a, field_node->inner_text, Q_OPTION_SIZE);
-            else if (strcmp(field_node->tag, "option_b") == 0)
-                strncpy(question->option_b, field_node->inner_text, Q_OPTION_SIZE);
-            else if (strcmp(field_node->tag, "option_c") == 0)
-                strncpy(question->option_c, field_node->inner_text, Q_OPTION_SIZE);
-            else if (strcmp(field_node->tag, "option_d") == 0)
-                strncpy(question->option_d, field_node->inner_text, Q_OPTION_SIZE);
-            else if (strcmp(field_node->tag, "correct_answer") == 0)
-                question->correct_answer = field_node->inner_text[0];
-            else if (strcmp(field_node->tag, "points") == 0)
-                question->points = atoi(field_node->inner_text);
-            else if (strcmp(field_node->tag, "category") == 0)
-                strncpy(question->category, field_node->inner_text, sizeof(question->category) - 1);
-            else if (strcmp(field_node->tag, "difficulty") == 0)
-                strncpy(question->difficulty, field_node->inner_text, sizeof(question->difficulty) - 1);
-            else if (strcmp(field_node->tag, "time_limit") == 0)
-                question->time_limit = atoi(field_node->inner_text);
+            if (strcmp(child_node->tag, "text") == 0 && child_node->inner_text) {
+                strncpy(question->text, child_node->inner_text, BUFF_SIZE - 1);
+                question->text[BUFF_SIZE - 1] = '\0';
+            } else if (strcmp(child_node->tag, "correct_answer") == 0 && child_node->inner_text) {
+                question->correct_answer = child_node->inner_text[0];
+            } else if (strcmp(child_node->tag, "options") == 0) {
+                XMLNode* option_node;
+                XML_FOREACH_CHILD(child_node, option_node) {
+                    if (!option_node->tag || strcmp(option_node->tag, "option") != 0)
+                        continue;
+                    
+                    char* letter_attr = XMLNode_attr_val(option_node, "letter");
+                    if (!letter_attr || !option_node->inner_text)
+                        continue;
+
+                    if (letter_attr[0] == 'A' || letter_attr[0] == 'a') {
+                        strncpy(question->option_a, option_node->inner_text, Q_OPTION_SIZE - 1);
+                        question->option_a[Q_OPTION_SIZE - 1] = '\0';
+                    } else if (letter_attr[0] == 'B' || letter_attr[0] == 'b') {
+                        strncpy(question->option_b, option_node->inner_text, Q_OPTION_SIZE - 1);
+                        question->option_b[Q_OPTION_SIZE - 1] = '\0';
+                    } else if (letter_attr[0] == 'C' || letter_attr[0] == 'c') {
+                        strncpy(question->option_c, option_node->inner_text, Q_OPTION_SIZE - 1);
+                        question->option_c[Q_OPTION_SIZE - 1] = '\0';
+                    } else if (letter_attr[0] == 'D' || letter_attr[0] == 'd') {
+                        strncpy(question->option_d, option_node->inner_text, Q_OPTION_SIZE - 1);
+                        question->option_d[Q_OPTION_SIZE - 1] = '\0';
+                    }
+                }
+            }          
         }
         
         questions = realloc(questions, (question_count + 1) * sizeof(question_t*));
