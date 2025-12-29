@@ -9,7 +9,7 @@
 extern comm_history_t input_state;
 extern comm_buff_t command_buff;
 
-void init_tui(tui_t*);
+void init_tui(tui_t*, const char*);
 void cleanup_tui(tui_t*);
 void clear_screen(WINDOW*);
 void redraw_input(WINDOW*);

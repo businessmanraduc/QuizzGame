@@ -49,6 +49,7 @@ typedef struct {
     int left_section_width; // width for input/output windows
     int right_section_width; // width for debug window
     bool debug_mode;
+    const char* sv_addr; // address to server
 } tui_t;
 
 extern pthread_mutex_t ncurses_mutex;

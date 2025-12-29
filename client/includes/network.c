@@ -8,7 +8,6 @@
 
 static tui_t* global_tui = NULL;
 
-
 /* Format the response received from the server and print it to the output terminal */
 /* @param tui Terminal User Interface struct */
 /* @param resp Response from server */
@@ -101,7 +100,7 @@ bool connect_to_server(tui_t* tui) {
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(8080);
-    inet_pton(AF_INET, "10.100.0.30", &server_addr.sin_addr);
+    inet_pton(AF_INET, tui->sv_addr, &server_addr.sin_addr);
     
     if (connect(client_state.socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         add_output_msg(tui->output_terminal, "[CLIENT] Error - Connection to server failed.\n", COLOR_ERROR);
