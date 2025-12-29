@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <ncurses.h>
 
-#define BUFF_SIZE 1024
+#define BUFF_SIZE 4096
 #define MAX_NAME_LEN 256
 #define HISTORY_SIZE 128
 #define MAX_MESSAGES 32

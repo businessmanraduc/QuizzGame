@@ -139,8 +139,8 @@ void load_questions() {
                 continue;
             
             if (strcmp(child_node->tag, "text") == 0 && child_node->inner_text) {
-                strncpy(question->text, child_node->inner_text, BUFF_SIZE - 1);
-                question->text[BUFF_SIZE - 1] = '\0';
+                strncpy(question->text, child_node->inner_text, BUFF_SIZE / 4 - 1);
+                question->text[BUFF_SIZE / 4 - 1] = '\0';
             } else if (strcmp(child_node->tag, "correct_answer") == 0 && child_node->inner_text) {
                 question->correct_answer = child_node->inner_text[0];
             } else if (strcmp(child_node->tag, "options") == 0) {
