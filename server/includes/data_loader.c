@@ -28,7 +28,6 @@ void load_users() {
         return;
     }
 
-    // Get all user nodes using the first version with attributes
     XMLNode* root = XMLNode_child(doc.root, 0);
     XMLNode* user_node;
     if (!root || strcmp(root->tag, "users") != 0) {
@@ -44,34 +43,48 @@ void load_users() {
         user_data_t* user = malloc(sizeof(user_data_t));
         if (!user) continue;
         
-        // Extract attributes from the user node
+        // Initialize to defaults
+        memset(user, 0, sizeof(user_data_t));
+        
+        // Extract username attribute from user node
         char* username = XMLNode_attr_val(user_node, "username");
         if (username) {
             strncpy(user->username, username, MAX_NAME_LEN - 1);
             user->username[MAX_NAME_LEN - 1] = '\0';
         }
         
-        char* points = XMLNode_attr_val(user_node, "points");
-        user->total_points = points ? atoi(points) : 0;
-        
-        char* games = XMLNode_attr_val(user_node, "games");
-        user->games_played = games ? atoi(games) : 0;
-        
-        char* wins = XMLNode_attr_val(user_node, "wins");
-        user->games_won = wins ? atoi(wins) : 0;
-        
-        char* max_streak = XMLNode_attr_val(user_node, "max_streak");
-        user->max_streak = max_streak ? atoi(max_streak) : 0;
-        
-        char* current_streak = XMLNode_attr_val(user_node, "current_streak");
-        user->curr_streak = current_streak ? atoi(current_streak) : 0;
-        
-        XMLNode* login_child = XMLNode_child(user_node, 2);
-        char* last_login = login_child->inner_text;
-        //printf("[DEBUG] last_login value : %s\n\n", last_login);
-        if (last_login) {
-            strncpy(user->last_login, last_login, sizeof(user->last_login) - 1);
-            user->last_login[sizeof(user->last_login) - 1] = '\0';
+        // Now iterate through child nodes to get stats, streaks, and last_login
+        XMLNode* child_node;
+        XML_FOREACH_CHILD(user_node, child_node) {
+            if (!child_node->tag)
+                continue;
+            
+            if (strcmp(child_node->tag, "stats") == 0) {
+                // Read from stats node attributes
+                char* points = XMLNode_attr_val(child_node, "points");
+                user->total_points = points ? atoi(points) : 0;
+                
+                char* games = XMLNode_attr_val(child_node, "games");
+                user->games_played = games ? atoi(games) : 0;
+                
+                char* wins = XMLNode_attr_val(child_node, "wins");
+                user->games_won = wins ? atoi(wins) : 0;
+                
+            } else if (strcmp(child_node->tag, "streaks") == 0) {
+                // Read from streaks node attributes
+                char* max_streak = XMLNode_attr_val(child_node, "max");
+                user->max_streak = max_streak ? atoi(max_streak) : 0;
+                
+                char* current_streak = XMLNode_attr_val(child_node, "current");
+                user->curr_streak = current_streak ? atoi(current_streak) : 0;
+                
+            } else if (strcmp(child_node->tag, "last_login") == 0) {
+                // Read last_login text content
+                if (child_node->inner_text) {
+                    strncpy(user->last_login, child_node->inner_text, sizeof(user->last_login) - 1);
+                    user->last_login[sizeof(user->last_login) - 1] = '\0';
+                }
+            }
         }
         
         // Add to users array

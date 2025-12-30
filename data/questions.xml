@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <questions>
-  <question id="1" category="Networking" difficulty="easy" points="10" time_limit="30">
+  <question id="1" category="Programming" difficulty="easy" points="10" time_limit="30">
     <text>What does HTTP stand for?</text>
     <options>
       <option letter="A">Hyper Text Transfer Protocol</option>
@@ -10,6 +10,7 @@
     </options>
     <correct_answer>A</correct_answer>
   </question>
+  
   <question id="2" category="Programming" difficulty="medium" points="15" time_limit="25">
     <text>Which of these is not a programming paradigm?</text>
     <options>
@@ -20,7 +21,74 @@
     </options>
     <correct_answer>D</correct_answer>
   </question>
-  <question id="3" category="Geography" difficulty="easy" points="10" time_limit="30">
+  
+  <question id="3" category="Programming" difficulty="medium" points="15" time_limit="25">
+    <text>In C programming, what does malloc() return?</text>
+    <options>
+      <option letter="A">A pointer to allocated memory</option>
+      <option letter="B">An integer representing success</option>
+      <option letter="C">A reference to the heap</option>
+      <option letter="D">The size of allocated memory</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  
+  <question id="4" category="Programming" difficulty="hard" points="20" time_limit="40">
+    <text>What is the time complexity of quicksort in the worst case?</text>
+    <options>
+      <option letter="A">O(n log n)</option>
+      <option letter="B">O(n^2)</option>
+      <option letter="C">O(n)</option>
+      <option letter="D">O(log n)</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="5" category="Programming" difficulty="easy" points="10" time_limit="30">
+    <text>Which symbol is used for comments in Python?</text>
+    <options>
+      <option letter="A">//</option>
+      <option letter="B">/* */</option>
+      <option letter="C">#</option>
+      <option letter="D">--</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="6" category="Networking" difficulty="medium" points="15" time_limit="30">
+    <text>What port does HTTPS typically use?</text>
+    <options>
+      <option letter="A">80</option>
+      <option letter="B">443</option>
+      <option letter="C">8080</option>
+      <option letter="D">3000</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="7" category="Programming" difficulty="hard" points="20" time_limit="35">
+    <text>What does ACID stand for in database systems?</text>
+    <options>
+      <option letter="A">Atomicity, Consistency, Isolation, Durability</option>
+      <option letter="B">Advanced Computer Interface Design</option>
+      <option letter="C">Automated Critical Information Database</option>
+      <option letter="D">All Concurrent Isolated Data</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  
+  <question id="8" category="Operating Systems" difficulty="medium" points="15" time_limit="30">
+    <text>What is a deadlock in operating systems?</text>
+    <options>
+      <option letter="A">When a program crashes unexpectedly</option>
+      <option letter="B">When processes wait indefinitely for resources</option>
+      <option letter="C">When the CPU usage reaches 100%</option>
+      <option letter="D">When memory is full</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="9" category="Geography" difficulty="easy" points="10" time_limit="30">
     <text>What is the capital of France?</text>
     <options>
       <option letter="A">London</option>
@@ -29,5 +97,456 @@
       <option letter="D">Madrid</option>
     </options>
     <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="10" category="Geography" difficulty="easy" points="10" time_limit="30">
+    <text>Which continent is the largest by area?</text>
+    <options>
+      <option letter="A">Africa</option>
+      <option letter="B">North America</option>
+      <option letter="C">Asia</option>
+      <option letter="D">Europe</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="11" category="Geography" difficulty="medium" points="15" time_limit="30">
+    <text>What is the longest river in the world?</text>
+    <options>
+      <option letter="A">Amazon River</option>
+      <option letter="B">Nile River</option>
+      <option letter="C">Yangtze River</option>
+      <option letter="D">Mississippi River</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="12" category="Geography" difficulty="hard" points="20" time_limit="35">
+    <text>Which country has the most time zones?</text>
+    <options>
+      <option letter="A">Russia</option>
+      <option letter="B">United States</option>
+      <option letter="C">China</option>
+      <option letter="D">France</option>
+    </options>
+    <correct_answer>D</correct_answer>
+  </question>
+  
+  <question id="13" category="Geography" difficulty="medium" points="15" time_limit="30">
+    <text>What is the smallest country in the world?</text>
+    <options>
+      <option letter="A">Monaco</option>
+      <option letter="B">San Marino</option>
+      <option letter="C">Vatican City</option>
+      <option letter="D">Liechtenstein</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="14" category="Science" difficulty="easy" points="10" time_limit="30">
+    <text>What is the chemical symbol for gold?</text>
+    <options>
+      <option letter="A">Go</option>
+      <option letter="B">Gd</option>
+      <option letter="C">Au</option>
+      <option letter="D">Ag</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="15" category="Science" difficulty="medium" points="15" time_limit="30">
+    <text>What is the speed of light in vacuum?</text>
+    <options>
+      <option letter="A">300,000 km/s</option>
+      <option letter="B">150,000 km/s</option>
+      <option letter="C">450,000 km/s</option>
+      <option letter="D">200,000 km/s</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  
+  <question id="16" category="Science" difficulty="hard" points="20" time_limit="35">
+    <text>What is the powerhouse of the cell?</text>
+    <options>
+      <option letter="A">Nucleus</option>
+      <option letter="B">Ribosome</option>
+      <option letter="C">Mitochondria</option>
+      <option letter="D">Endoplasmic Reticulum</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="17" category="Science" difficulty="medium" points="15" time_limit="30">
+    <text>How many bones does an adult human have?</text>
+    <options>
+      <option letter="A">186</option>
+      <option letter="B">206</option>
+      <option letter="C">226</option>
+      <option letter="D">246</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="18" category="Science" difficulty="easy" points="10" time_limit="30">
+    <text>What planet is known as the Red Planet?</text>
+    <options>
+      <option letter="A">Venus</option>
+      <option letter="B">Jupiter</option>
+      <option letter="C">Mars</option>
+      <option letter="D">Saturn</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="19" category="History" difficulty="easy" points="10" time_limit="30">
+    <text>In which year did World War II end?</text>
+    <options>
+      <option letter="A">1943</option>
+      <option letter="B">1944</option>
+      <option letter="C">1945</option>
+      <option letter="D">1946</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="20" category="History" difficulty="medium" points="15" time_limit="30">
+    <text>Who was the first person to walk on the moon?</text>
+    <options>
+      <option letter="A">Buzz Aldrin</option>
+      <option letter="B">Neil Armstrong</option>
+      <option letter="C">Yuri Gagarin</option>
+      <option letter="D">John Glenn</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="21" category="History" difficulty="hard" points="20" time_limit="35">
+    <text>Which empire built Machu Picchu?</text>
+    <options>
+      <option letter="A">Aztec Empire</option>
+      <option letter="B">Maya Empire</option>
+      <option letter="C">Inca Empire</option>
+      <option letter="D">Olmec Empire</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="22" category="History" difficulty="medium" points="15" time_limit="30">
+    <text>What year did the Berlin Wall fall?</text>
+    <options>
+      <option letter="A">1987</option>
+      <option letter="B">1989</option>
+      <option letter="C">1991</option>
+      <option letter="D">1985</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="23" category="Mathematics" difficulty="easy" points="10" time_limit="30">
+    <text>What is the value of pi (π) to two decimal places?</text>
+    <options>
+      <option letter="A">3.12</option>
+      <option letter="B">3.14</option>
+      <option letter="C">3.16</option>
+      <option letter="D">3.18</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="24" category="Mathematics" difficulty="medium" points="15" time_limit="30">
+    <text>What is the square root of 144?</text>
+    <options>
+      <option letter="A">10</option>
+      <option letter="B">11</option>
+      <option letter="C">12</option>
+      <option letter="D">13</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="25" category="Mathematics" difficulty="hard" points="20" time_limit="40">
+    <text>What is the derivative of x^2?</text>
+    <options>
+      <option letter="A">x</option>
+      <option letter="B">2x</option>
+      <option letter="C">x^2</option>
+      <option letter="D">2x^2</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="26" category="Mathematics" difficulty="medium" points="15" time_limit="30">
+    <text>How many degrees are in a right angle?</text>
+    <options>
+      <option letter="A">45</option>
+      <option letter="B">60</option>
+      <option letter="C">90</option>
+      <option letter="D">180</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="27" category="Pop Culture" difficulty="easy" points="10" time_limit="30">
+    <text>Who directed the movie "Titanic"?</text>
+    <options>
+      <option letter="A">Steven Spielberg</option>
+      <option letter="B">James Cameron</option>
+      <option letter="C">Christopher Nolan</option>
+      <option letter="D">Martin Scorsese</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="28" category="Pop Culture" difficulty="medium" points="15" time_limit="30">
+    <text>Which band released the album "The Dark Side of the Moon"?</text>
+    <options>
+      <option letter="A">The Beatles</option>
+      <option letter="B">Led Zeppelin</option>
+      <option letter="C">Pink Floyd</option>
+      <option letter="D">Queen</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="29" category="Pop Culture" difficulty="easy" points="10" time_limit="30">
+    <text>What is the name of Harry Potter's owl?</text>
+    <options>
+      <option letter="A">Errol</option>
+      <option letter="B">Hedwig</option>
+      <option letter="C">Pigwidgeon</option>
+      <option letter="D">Scabbers</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="30" category="Pop Culture" difficulty="hard" points="20" time_limit="35">
+    <text>Which video game franchise features the character Master Chief?</text>
+    <options>
+      <option letter="A">Call of Duty</option>
+      <option letter="B">Halo</option>
+      <option letter="C">Destiny</option>
+      <option letter="D">Mass Effect</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="31" category="Sports" difficulty="easy" points="10" time_limit="30">
+    <text>How many players are on a soccer team on the field?</text>
+    <options>
+      <option letter="A">9</option>
+      <option letter="B">10</option>
+      <option letter="C">11</option>
+      <option letter="D">12</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="32" category="Sports" difficulty="medium" points="15" time_limit="30">
+    <text>Which country won the FIFA World Cup in 2018?</text>
+    <options>
+      <option letter="A">Germany</option>
+      <option letter="B">Brazil</option>
+      <option letter="C">France</option>
+      <option letter="D">Argentina</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="33" category="Sports" difficulty="hard" points="20" time_limit="35">
+    <text>In which sport would you perform a "Fosbury Flop"?</text>
+    <options>
+      <option letter="A">Long Jump</option>
+      <option letter="B">High Jump</option>
+      <option letter="C">Pole Vault</option>
+      <option letter="D">Triple Jump</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="34" category="Sports" difficulty="medium" points="15" time_limit="30">
+    <text>How many points is a touchdown worth in American football?</text>
+    <options>
+      <option letter="A">3</option>
+      <option letter="B">5</option>
+      <option letter="C">6</option>
+      <option letter="D">7</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="35" category="Literature" difficulty="medium" points="15" time_limit="30">
+    <text>Who wrote "1984"?</text>
+    <options>
+      <option letter="A">Aldous Huxley</option>
+      <option letter="B">George Orwell</option>
+      <option letter="C">Ray Bradbury</option>
+      <option letter="D">H.G. Wells</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="36" category="Literature" difficulty="easy" points="10" time_limit="30">
+    <text>Who is the author of the "Lord of the Rings" trilogy?</text>
+    <options>
+      <option letter="A">C.S. Lewis</option>
+      <option letter="B">J.K. Rowling</option>
+      <option letter="C">J.R.R. Tolkien</option>
+      <option letter="D">George R.R. Martin</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="37" category="Literature" difficulty="hard" points="20" time_limit="35">
+    <text>In which Shakespeare play does the character Prospero appear?</text>
+    <options>
+      <option letter="A">The Tempest</option>
+      <option letter="B">Hamlet</option>
+      <option letter="C">Macbeth</option>
+      <option letter="D">King Lear</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  
+  <question id="38" category="General Knowledge" difficulty="easy" points="10" time_limit="30">
+    <text>How many days are in a leap year?</text>
+    <options>
+      <option letter="A">364</option>
+      <option letter="B">365</option>
+      <option letter="C">366</option>
+      <option letter="D">367</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="39" category="General Knowledge" difficulty="medium" points="15" time_limit="30">
+    <text>What is the tallest mountain in the world?</text>
+    <options>
+      <option letter="A">K2</option>
+      <option letter="B">Kangchenjunga</option>
+      <option letter="C">Mount Everest</option>
+      <option letter="D">Lhotse</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="40" category="General Knowledge" difficulty="easy" points="10" time_limit="30">
+    <text>How many colors are in a rainbow?</text>
+    <options>
+      <option letter="A">5</option>
+      <option letter="B">6</option>
+      <option letter="C">7</option>
+      <option letter="D">8</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="41" category="General Knowledge" difficulty="hard" points="20" time_limit="35">
+    <text>What is the currency of Japan?</text>
+    <options>
+      <option letter="A">Yuan</option>
+      <option letter="B">Won</option>
+      <option letter="C">Yen</option>
+      <option letter="D">Ringgit</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="42" category="Technology" difficulty="easy" points="10" time_limit="30">
+    <text>What does CPU stand for?</text>
+    <options>
+      <option letter="A">Central Processing Unit</option>
+      <option letter="B">Computer Personal Unit</option>
+      <option letter="C">Central Processor Utility</option>
+      <option letter="D">Computer Processing Unit</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  
+  <question id="43" category="Technology" difficulty="medium" points="15" time_limit="30">
+    <text>Who is considered the father of modern computing?</text>
+    <options>
+      <option letter="A">Steve Jobs</option>
+      <option letter="B">Bill Gates</option>
+      <option letter="C">Alan Turing</option>
+      <option letter="D">Tim Berners-Lee</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="44" category="Technology" difficulty="hard" points="20" time_limit="35">
+    <text>What year was the first iPhone released?</text>
+    <options>
+      <option letter="A">2005</option>
+      <option letter="B">2006</option>
+      <option letter="C">2007</option>
+      <option letter="D">2008</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="45" category="Technology" difficulty="medium" points="15" time_limit="30">
+    <text>What does RAM stand for?</text>
+    <options>
+      <option letter="A">Read Access Memory</option>
+      <option letter="B">Random Access Memory</option>
+      <option letter="C">Rapid Access Module</option>
+      <option letter="D">Runtime Application Memory</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="46" category="Art" difficulty="medium" points="15" time_limit="30">
+    <text>Who painted the Mona Lisa?</text>
+    <options>
+      <option letter="A">Vincent van Gogh</option>
+      <option letter="B">Pablo Picasso</option>
+      <option letter="C">Leonardo da Vinci</option>
+      <option letter="D">Michelangelo</option>
+    </options>
+    <correct_answer>C</correct_answer>
+  </question>
+  
+  <question id="47" category="Art" difficulty="hard" points="20" time_limit="35">
+    <text>In which museum is the "Starry Night" painting displayed?</text>
+    <options>
+      <option letter="A">Louvre Museum</option>
+      <option letter="B">Museum of Modern Art</option>
+      <option letter="C">National Gallery</option>
+      <option letter="D">Rijksmuseum</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="48" category="Art" difficulty="easy" points="10" time_limit="30">
+    <text>What are the three primary colors?</text>
+    <options>
+      <option letter="A">Red, Yellow, Blue</option>
+      <option letter="B">Red, Green, Blue</option>
+      <option letter="C">Orange, Purple, Green</option>
+      <option letter="D">Black, White, Gray</option>
+    </options>
+    <correct_answer>A</correct_answer>
+  </question>
+  
+  <question id="49" category="Programming" difficulty="medium" points="15" time_limit="30">
+    <text>What is the output of: print(2 ** 3) in Python?</text>
+    <options>
+      <option letter="A">6</option>
+      <option letter="B">8</option>
+      <option letter="C">9</option>
+      <option letter="D">5</option>
+    </options>
+    <correct_answer>B</correct_answer>
+  </question>
+  
+  <question id="50" category="Programming" difficulty="hard" points="20" time_limit="40">
+    <text>Which data structure uses LIFO (Last In First Out)?</text>
+    <options>
+      <option letter="A">Queue</option>
+      <option letter="B">Array</option>
+      <option letter="C">Stack</option>
+      <option letter="D">Linked List</option>
+    </options>
+    <correct_answer>C</correct_answer>
   </question>
 </questions>

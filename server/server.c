@@ -76,7 +76,7 @@ void announce_result(client_t* player, bool correct, int points_earned, char cor
 
     if (correct) {
         snprintf(buff, sizeof(buff),
-                 "WRES:You answered correctly! +%d points (Total: %d)",
+                 "WRES:You answered correctly! +%d points (Total: %d)\n",
                  points_earned, player->score);
     } else {
         snprintf(buff, sizeof(buff),
@@ -151,125 +151,152 @@ void announce_winner() {
     broadcast_all(buff, NULL);
 }
 
-void* game_loop(void* arg) {
-    printf(Green"[GAME] Game loop started, waiting for start signal...\n"Clear);
-
+void reset_game_session() {
     pthread_mutex_lock(&game_session.lock);
-    while (game_session.state == GAME_WAITING)
-        pthread_cond_wait(&game_session.game_start, &game_session.lock);
-    pthread_mutex_unlock(&game_session.lock);
-    
-    broadcast_all("GAME:Ladies and gentlemen, the game is starting! Get ready!", NULL);
-    sleep(2);
 
-    for (int q_idx = 0; q_idx < question_count; q_idx++) {
-        pthread_mutex_lock(&game_session.lock);
-
-        if (game_session.player_count == 0) {
-            printf(Yellow"[GAME] No players left! Ending game.\n"Clear);
-            pthread_mutex_unlock(&game_session.lock);
-            break;
-        }
-
-        game_session.curr_question_idx = q_idx;
-        question_t* curr_question = questions[q_idx];
-        int players_in_round = game_session.player_count;
-
-        pthread_mutex_unlock(&game_session.lock);
-        printf(Cyan"[GAME] Question %d/%d: %s\n"Clear, q_idx + 1, question_count, curr_question->text);
-
-        for (int player_idx = 0; player_idx < players_in_round; player_idx++) {
-            pthread_mutex_lock(&game_session.lock);
-            if (game_session.player_count == 0) {
-                pthread_mutex_unlock(&game_session.lock);
-                break;
-            }
-            if (player_idx >= game_session.player_count) {
-                pthread_mutex_unlock(&game_session.lock);
-                break;
-            }
-
-            game_session.curr_player_turn = player_idx;
-            client_t* curr_player = game_session.players[player_idx];
-            char curr_player_name[MAX_NAME_LEN];
-            strcpy(curr_player_name, curr_player->username);
-            if (curr_player->state == CLIENT_DISCONNECTED) {
-                pthread_mutex_unlock(&game_session.lock);
-                continue;
-            }
-            printf(Blue"[GAME] Player %d/%d: %s's turn\n"Clear, player_idx + 1, players_in_round, curr_player->username);
-        
-            pthread_mutex_unlock(&game_session.lock);
-
-            send_question(curr_player, curr_question);
-            broadcast_question(curr_question, curr_player->username);
-            time_t start_time = time(NULL);
-            game_session.question_start_time = start_time;
-
-            pthread_mutex_lock(&curr_player->lock);
-            curr_player->has_answered = false;
-            pthread_mutex_unlock(&curr_player->lock);
-
-            bool answer_time = false;
-            while (difftime(time(NULL), start_time) < curr_question->time_limit) {
-                pthread_mutex_lock(&curr_player->lock);
-                bool answered = curr_player->has_answered;
-                bool disconnected = (curr_player->state == CLIENT_DISCONNECTED);
-                pthread_mutex_unlock(&curr_player->lock);
-
-                if (answered || disconnected) {
-                    answer_time = answered;
-                    break;
-                }
-
-                usleep(100000);
-            }
-
-            if (curr_player->state == CLIENT_DISCONNECTED) {
-                printf(Yellow"[GAME] Player %s disconnected during their turn\n"Clear, curr_player_name);
-                char buff[BUFF_SIZE];
-                snprintf(buff, sizeof(buff), "INFO:%s disconnected\n", curr_player_name);
-                broadcast_all(buff, curr_player);
-                continue;
-            }
-
-            if (answer_time) {
-                pthread_mutex_lock(&curr_player->lock);
-                char answer = curr_player->answer;
-                pthread_mutex_unlock(&curr_player->lock);
-
-                bool correct = (answer == curr_question->correct_answer);
-                if (correct) {
-                    curr_player->score += curr_question->points;
-                    printf(Green"[GAME] %s answered correctly! +%d points\n"Clear,
-                           curr_player->username, curr_question->points);
-                } else {
-                    printf(Blue"[GAME] %s answered incorrectly (answered %c, correct was %c)\n"Clear,
-                           curr_player->username, answer, curr_question->correct_answer);
-                }
-
-                announce_result(curr_player, correct, curr_question->points, curr_question->correct_answer);
-            } else {
-                printf(Blue"[GAME] %s timed out\n"Clear, curr_player->username);
-                announce_timeout(curr_player);
-            }
-        }
-
-        if (q_idx < question_count - 1) {
-            char buff[BUFF_SIZE];
-            snprintf(buff, sizeof(buff), "INFO:Next question in 3 seconds... (%d/%d)", q_idx + 2, question_count);
-            broadcast_all(buff, NULL);
-            sleep(3);
+    for (int i = 0; i < game_session.player_count; i++) {
+        if (game_session.players[i] && game_session.players[i]->state != CLIENT_DISCONNECTED) {
+            game_session.players[i]->state = CLIENT_CONNECTED;
+            game_session.players[i]->score = 0;
+            game_session.players[i]->has_answered = false;
         }
     }
 
-    printf(Green"[GAME] All questions completed!\n"Clear);
+    free(game_session.players);
+    game_session.players = NULL;
+    game_session.player_count = 0;
+    game_session.curr_question_idx = 0;
+    game_session.curr_player_turn = 0;
+    game_session.state = GAME_WAITING;
 
-    pthread_mutex_lock(&game_session.lock);
-    game_session.state = GAME_FINISHED;
     pthread_mutex_unlock(&game_session.lock);
+    printf(Yellow"[GAME] Game session reset, ready for new players\n"Clear);
+}
 
-    announce_winner();
+void* game_loop(void* arg) {
+    while (true) {
+        printf(Green"[GAME] Game loop started, waiting for start signal...\n"Clear);
+
+        pthread_mutex_lock(&game_session.lock);
+        while (game_session.state == GAME_WAITING)
+            pthread_cond_wait(&game_session.game_start, &game_session.lock);
+        pthread_mutex_unlock(&game_session.lock);
+        
+        broadcast_all("GAME:Ladies and gentlemen, the game is starting! Get ready!", NULL);
+        sleep(2);
+
+        for (int q_idx = 0; q_idx < question_count; q_idx++) {
+            pthread_mutex_lock(&game_session.lock);
+
+            if (game_session.player_count == 0) {
+                printf(Yellow"[GAME] No players left! Ending game.\n"Clear);
+                pthread_mutex_unlock(&game_session.lock);
+                break;
+            }
+
+            game_session.curr_question_idx = q_idx;
+            question_t* curr_question = questions[q_idx];
+            int players_in_round = game_session.player_count;
+
+            pthread_mutex_unlock(&game_session.lock);
+            printf(Cyan"[GAME] Question %d/%d: %s\n"Clear, q_idx + 1, question_count, curr_question->text);
+
+            for (int player_idx = 0; player_idx < players_in_round; player_idx++) {
+                pthread_mutex_lock(&game_session.lock);
+                if (game_session.player_count == 0) {
+                    pthread_mutex_unlock(&game_session.lock);
+                    break;
+                }
+                if (player_idx >= game_session.player_count) {
+                    pthread_mutex_unlock(&game_session.lock);
+                    break;
+                }
+
+                game_session.curr_player_turn = player_idx;
+                client_t* curr_player = game_session.players[player_idx];
+                char curr_player_name[MAX_NAME_LEN];
+                strcpy(curr_player_name, curr_player->username);
+                if (curr_player->state == CLIENT_DISCONNECTED) {
+                    pthread_mutex_unlock(&game_session.lock);
+                    continue;
+                }
+                printf(Blue"[GAME] Player %d/%d: %s's turn\n"Clear, player_idx + 1, players_in_round, curr_player->username);
+            
+                pthread_mutex_unlock(&game_session.lock);
+
+                send_question(curr_player, curr_question);
+                broadcast_question(curr_question, curr_player->username);
+                time_t start_time = time(NULL);
+                game_session.question_start_time = start_time;
+
+                pthread_mutex_lock(&curr_player->lock);
+                curr_player->has_answered = false;
+                pthread_mutex_unlock(&curr_player->lock);
+
+                bool answer_time = false;
+                while (difftime(time(NULL), start_time) < curr_question->time_limit) {
+                    pthread_mutex_lock(&curr_player->lock);
+                    bool answered = curr_player->has_answered;
+                    bool disconnected = (curr_player->state == CLIENT_DISCONNECTED);
+                    pthread_mutex_unlock(&curr_player->lock);
+
+                    if (answered || disconnected) {
+                        answer_time = answered;
+                        break;
+                    }
+
+                    usleep(100000);
+                }
+
+                if (curr_player->state == CLIENT_DISCONNECTED) {
+                    printf(Yellow"[GAME] Player %s disconnected during their turn\n"Clear, curr_player_name);
+                    char buff[BUFF_SIZE];
+                    snprintf(buff, sizeof(buff), "INFO:%s disconnected\n", curr_player_name);
+                    broadcast_all(buff, curr_player);
+                    continue;
+                }
+
+                if (answer_time) {
+                    pthread_mutex_lock(&curr_player->lock);
+                    char answer = curr_player->answer;
+                    pthread_mutex_unlock(&curr_player->lock);
+
+                    bool correct = (answer == curr_question->correct_answer);
+                    if (correct) {
+                        curr_player->score += curr_question->points;
+                        printf(Green"[GAME] %s answered correctly! +%d points\n"Clear,
+                            curr_player->username, curr_question->points);
+                    } else {
+                        printf(Blue"[GAME] %s answered incorrectly (answered %c, correct was %c)\n"Clear,
+                            curr_player->username, answer, curr_question->correct_answer);
+                    }
+
+                    announce_result(curr_player, correct, curr_question->points, curr_question->correct_answer);
+                } else {
+                    printf(Blue"[GAME] %s timed out\n"Clear, curr_player->username);
+                    announce_timeout(curr_player);
+                }
+            }
+
+            if (q_idx < question_count - 1) {
+                char buff[BUFF_SIZE];
+                snprintf(buff, sizeof(buff), "INFO:Next question in 3 seconds... (%d/%d)", q_idx + 2, question_count);
+                broadcast_all(buff, NULL);
+                sleep(3);
+            }
+        }
+
+        printf(Green"[GAME] All questions completed!\n"Clear);
+
+        pthread_mutex_lock(&game_session.lock);
+        game_session.state = GAME_FINISHED;
+        pthread_mutex_unlock(&game_session.lock);
+
+        announce_winner();
+        sleep(5);
+        broadcast_all("INFO:Game ended. You can type 'join' to play again!\n", NULL);
+        reset_game_session();
+    }
     return NULL;
 }
 
